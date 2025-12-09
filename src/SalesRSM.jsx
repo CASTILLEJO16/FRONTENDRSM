@@ -859,4 +859,3 @@ const datosGrafica = clients.map(cliente => {
     </div>
   );
 }
-
