@@ -12,7 +12,7 @@ export function AppProvider({ children }) {
   const [alert, setAlert] = useState(null);
 
   const API = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || "http://localhost:4000/api",
+    baseURL: import.meta.env.VITE_API_URL || "https://salesrsm-backend.onrender.com/api",
     timeout: 10000,
   });
 
