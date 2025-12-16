@@ -1,11 +1,45 @@
-import React from "react";
+import React, { useContext, useState } from "react";
+import { AppContext } from "../context/AppContext";
+import { LogOut } from "lucide-react";
 
 export default function Settings() {
+  const { logout, showAlert } = useContext(AppContext);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const handleLogout = () => {
+    setShowConfirm(true);
+  };
+
+  const confirmLogout = () => {
+    logout();
+    showAlert("success", "Sesión cerrada correctamente");
+  };
+
   return (
     <div className="p-6 max-w-3xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">⚙️ Configuración del Sistema</h1>
 
       <div className="space-y-4">
+
+        {/* ============ SESIÓN (SOLO MÓVIL) ============ */}
+        <details className="border rounded-lg p-4 md:hidden bg-slate-800/40 border-slate-700">
+          <summary className="cursor-pointer text-lg font-semibold text-white flex items-center gap-2">
+            🔐 Sesión
+          </summary>
+          <div className="mt-3 space-y-3">
+            <div className="text-slate-300 text-sm mb-3">
+              Cierra tu sesión de forma segura
+            </div>
+            <button
+              onClick={handleLogout}
+              className="w-full bg-red-600 text-white p-3 rounded-lg hover:bg-red-700 
+                       transition flex items-center justify-center gap-2 font-semibold"
+            >
+              <LogOut size={20} />
+              <span>Cerrar Sesión</span>
+            </button>
+          </div>
+        </details>
 
         {/* ============ SISTEMA ============ */}
         <details className="border rounded-lg p-4">
@@ -170,6 +204,32 @@ export default function Settings() {
           </div>
         </details>
       </div>
+
+      {/* Modal de confirmación */}
+      {showConfirm && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-xl p-6 max-w-sm w-full border border-slate-700">
+            <h3 className="text-xl font-bold text-white mb-3">¿Cerrar sesión?</h3>
+            <p className="text-slate-300 mb-6">
+              ¿Estás seguro que deseas cerrar tu sesión?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={confirmLogout}
+                className="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition"
+              >
+                Sí, cerrar
+              </button>
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="flex-1 bg-slate-700 text-white py-2 rounded-lg hover:bg-slate-600 transition"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
