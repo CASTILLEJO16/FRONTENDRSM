@@ -14,6 +14,7 @@ import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import Historial from "./pages/HistoryPage";
 import MobileNavbar from "./components/MobileNavbar";
+import InstallPWA from "./components/InstallPWA";
 
 export default function App() {
   const { token } = useContext(AppContext);
@@ -21,6 +22,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Toast />
+      <InstallPWA /> 
       
       <Routes>
         {/* ✅ RUTA PÚBLICA - No requiere login */}
