@@ -3,11 +3,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
 import ObservationModal from "../components/ObservationModal";
 import { Loader2, AlertCircle } from "lucide-react";
+import axios from "axios";
 
 export default function ScanPage() {
   const { clientId } = useParams();
   const navigate = useNavigate();
-  const { clients, fetchClients, enviarMensaje } = useContext(AppContext);
+  const { token, enviarMensaje, showAlert } = useContext(AppContext);
   
   const [cliente, setCliente] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -19,23 +20,19 @@ export default function ScanPage() {
       try {
         setLoading(true);
         
-        // Si no hay clientes cargados, cargarlos
-        if (!clients || clients.length === 0) {
-          await fetchClients();
-        }
+        // ✅ Llamada directa a la API sin autenticación
+        const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+        const response = await axios.get(`${API_URL}/clients/public/${clientId}`);
         
-        // Buscar el cliente por ID
-        const clienteEncontrado = clients.find(c => c._id === clientId);
-        
-        if (clienteEncontrado) {
-          setCliente(clienteEncontrado);
-          setShowModal(true); // Abrir modal automáticamente
+        if (response.data) {
+          setCliente(response.data);
+          setShowModal(true);
         } else {
           setError("Cliente no encontrado");
         }
       } catch (err) {
         console.error("Error cargando cliente:", err);
-        setError("Error al cargar la información del cliente");
+        setError("Cliente no encontrado");
       } finally {
         setLoading(false);
       }
@@ -44,7 +41,31 @@ export default function ScanPage() {
     if (clientId) {
       cargarCliente();
     }
-  }, [clientId, clients, fetchClients]);
+  }, [clientId]);
+
+  const handleSaveMensaje = async (data) => {
+    try {
+      if (!token) {
+        // Si no hay token, guardar sin autenticación
+        const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+        await axios.post(`${API_URL}/clients/public/${clientId}/mensaje`, data);
+      } else {
+        // Si hay token, usar la función del contexto
+        await enviarMensaje(clientId, data);
+      }
+      
+      setShowModal(false);
+      showAlert("success", "✅ Mensaje enviado correctamente");
+      
+      // Si está logueado, volver a clientes, si no, solo cerrar
+      if (token) {
+        navigate("/clients");
+      }
+    } catch (error) {
+      console.error("Error al enviar mensaje:", error);
+      showAlert("error", "❌ Error al enviar el mensaje");
+    }
+  };
 
   if (loading) {
     return (
@@ -64,12 +85,14 @@ export default function ScanPage() {
           <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-red-400 mb-2">Error</h2>
           <p className="text-slate-300 mb-6">{error}</p>
-          <button
-            onClick={() => navigate("/clients")}
-            className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-white transition-colors"
-          >
-            Volver a clientes
-          </button>
+          {token && (
+            <button
+              onClick={() => navigate("/clients")}
+              className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-white transition-colors"
+            >
+              Volver a clientes
+            </button>
+          )}
         </div>
       </div>
     );
@@ -110,34 +133,22 @@ export default function ScanPage() {
           >
             Enviar Mensaje
           </button>
-          <button
-            onClick={() => navigate("/clients")}
-            className="px-6 py-3 border border-slate-700 rounded-lg hover:bg-slate-700 transition-colors text-slate-300"
-          >
-            Ver Lista
-          </button>
+          {token && (
+            <button
+              onClick={() => navigate("/clients")}
+              className="px-6 py-3 border border-slate-700 rounded-lg hover:bg-slate-700 transition-colors text-slate-300"
+            >
+              Ver Lista
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Modal de observaciones */}
       {showModal && cliente && (
         <ObservationModal
           cliente={cliente}
           onClose={() => setShowModal(false)}
-          onSave={async (texto) => {
-            try {
-              await enviarMensaje(cliente._id, texto);
-              await fetchClients();
-              setShowModal(false);
-              
-              // Mostrar confirmación
-              alert("Mensaje enviado correctamente");
-              navigate("/clients");
-            } catch (error) {
-              console.error("Error al guardar observación:", error);
-              alert("Error al enviar el mensaje");
-            }
-          }}
+          onSave={handleSaveMensaje}
         />
       )}
     </div>
