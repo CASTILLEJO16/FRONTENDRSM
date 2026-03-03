@@ -6,3 +6,6 @@ dist/
 .env.production.local
 .DS_Store
 *.log
+
+# Excluir backend
+rsm-backend/
