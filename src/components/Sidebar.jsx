@@ -67,10 +67,10 @@ export default function Sidebar() {
             ))}
           </nav>
 
-          {/* CERRAR SESIÓN */}
+          {/* CERRAR SESIÓN - SOLO VISIBLE EN PC */}
           <button
             onClick={logout}
-            className="flex items-center gap-3 px-3 py-2 rounded-lg bg-red-600 text-white 
+            className="hidden md:flex items-center gap-3 px-3 py-2 rounded-lg bg-red-600 text-white 
                      hover:bg-red-700 transition mt-4"
           >
             <LogOut size={16} />

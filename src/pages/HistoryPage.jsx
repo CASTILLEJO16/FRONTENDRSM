@@ -195,12 +195,7 @@ export default function HistoryPage() {
                 {clients.length} cliente{clients.length !== 1 ? 's' : ''} registrado{clients.length !== 1 ? 's' : ''}
               </p>
             </div>
-            <button
-              onClick={handleRecargar}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center justify-center gap-2"
-            >
-              🔄 Actualizar
-            </button>
+          
           </div>
         </div>
       </div>
