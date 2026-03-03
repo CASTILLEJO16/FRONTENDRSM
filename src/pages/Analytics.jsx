@@ -2,10 +2,6 @@ import React, { useContext } from "react";
 import { AppContext } from "../context/AppContext";
 import BarSalesChart from "../components/BarSalesChart";
 import GoalsChart from "../components/GoalsChart";
-import PieDistributionChart from "../components/PieDistributionChart";
-import TrendChart from "../components/TrendChart";
-import RemindersSystem from "../components/RemindersSystem";
-import NotificationsPanel from "../components/NotificationsPanel";
 
 export default function Analytics() {
   const { clients } = useContext(AppContext);
@@ -16,13 +12,6 @@ export default function Analytics() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <BarSalesChart clients={clients} />
         <GoalsChart clients={clients} />
-        <PieDistributionChart clients={clients} />
-        <TrendChart clients={clients} />
-      </div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <RemindersSystem clients={clients} />
-        <NotificationsPanel clients={clients} />
       </div>
     </div>
   );

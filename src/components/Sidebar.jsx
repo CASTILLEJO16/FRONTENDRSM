@@ -1,7 +1,7 @@
 import React, { useState, useContext } from "react";
 import { NavLink } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
-import { Menu, X, Home, Users, BarChart2, Settings, LogOut, History } from "lucide-react";
+import { Menu, X, Home, Users, BarChart2, Settings, LogOut, History, FileText, Bell } from "lucide-react";
 
 export default function Sidebar() {
   const [open, setOpen] = useState(false);
@@ -11,7 +11,9 @@ export default function Sidebar() {
     { to: "/dashboard", label: "Dashboard", icon: <Home size={16} /> },
     { to: "/clients", label: "Clientes", icon: <Users size={16} /> },
     { to: "/analytics", label: "Ventas", icon: <BarChart2 size={16} /> },
-    { to: "/Historial", label: "Historial", icon: <History size={16} /> },
+    { to: "/reports", label: "Reportes", icon: <FileText size={16} /> },
+    { to: "/activity", label: "Actividad", icon: <Bell size={16} /> },
+    { to: "/historial", label: "Historial", icon: <History size={16} /> },
     { to: "/settings", label: "Configuración", icon: <Settings size={16} /> },
   ];
 

@@ -11,6 +11,8 @@ import LoginPage from "./pages/LoginPage";
 import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
 import Analytics from "./pages/Analytics";
+import Reports from "./pages/Reports";
+import Activity from "./pages/Activity";
 import Settings from "./pages/Settings";
 import Historial from "./pages/HistoryPage";
 import MobileNavbar from "./components/MobileNavbar";
@@ -45,6 +47,8 @@ export default function App() {
                       <Route path="/dashboard" element={<Dashboard />} />
                       <Route path="/clients" element={<Clients />} />
                       <Route path="/analytics" element={<Analytics />} />
+                      <Route path="/reports" element={<Reports />} />
+                      <Route path="/activity" element={<Activity />} />
                       <Route path="/settings" element={<Settings />} />
                       <Route path="/historial" element={<Historial />} />
                       <Route path="*" element={<Navigate to="/dashboard" />} />
