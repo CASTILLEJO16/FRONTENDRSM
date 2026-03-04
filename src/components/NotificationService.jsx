@@ -150,10 +150,10 @@ class NotificationService {
     }
   }
 
-  // Obtener recordatorios del localStorage
-  getStoredReminders() {
+  // Obtener recordatorios del localStorage con clave de usuario
+  getStoredReminders(userKey = 'reminders') {
     try {
-      const stored = localStorage.getItem('reminders');
+      const stored = localStorage.getItem(userKey);
       return stored ? JSON.parse(stored) : [];
     } catch (error) {
       console.error('Error al obtener recordatorios:', error);
@@ -161,32 +161,32 @@ class NotificationService {
     }
   }
 
-  // Guardar recordatorios en localStorage
-  saveReminders(reminders) {
+  // Guardar recordatorios en localStorage con clave de usuario
+  saveReminders(reminders, userKey = 'reminders') {
     try {
-      localStorage.setItem('reminders', JSON.stringify(reminders));
+      localStorage.setItem(userKey, JSON.stringify(reminders));
     } catch (error) {
       console.error('Error al guardar recordatorios:', error);
     }
   }
 
   // Agregar nuevo recordatorio
-  addReminder(reminder) {
-    const reminders = this.getStoredReminders();
+  addReminder(reminder, userKey = 'reminders') {
+    const reminders = this.getStoredReminders(userKey);
     reminders.push(reminder);
-    this.saveReminders(reminders);
+    this.saveReminders(reminders, userKey);
     this.scheduleReminder(reminder);
     return reminder;
   }
 
   // Actualizar recordatorio
-  updateReminder(updatedReminder) {
-    const reminders = this.getStoredReminders();
+  updateReminder(updatedReminder, userKey = 'reminders') {
+    const reminders = this.getStoredReminders(userKey);
     const index = reminders.findIndex(r => r.id === updatedReminder.id);
     
     if (index !== -1) {
       reminders[index] = updatedReminder;
-      this.saveReminders(reminders);
+      this.saveReminders(reminders, userKey);
       this.scheduleReminder(updatedReminder);
     }
     
@@ -194,22 +194,22 @@ class NotificationService {
   }
 
   // Eliminar recordatorio
-  deleteReminder(reminderId) {
-    const reminders = this.getStoredReminders();
+  deleteReminder(reminderId, userKey = 'reminders') {
+    const reminders = this.getStoredReminders(userKey);
     const filtered = reminders.filter(r => r.id !== reminderId);
-    this.saveReminders(filtered);
+    this.saveReminders(filtered, userKey);
     return filtered;
   }
 
   // Marcar como completado
-  completeReminder(reminderId) {
-    const reminders = this.getStoredReminders();
+  completeReminder(reminderId, userKey = 'reminders') {
+    const reminders = this.getStoredReminders(userKey);
     const reminder = reminders.find(r => r.id === reminderId);
     
     if (reminder) {
       reminder.estado = 'completado';
       reminder.fechaCompletado = new Date().toISOString();
-      this.saveReminders(reminders);
+      this.saveReminders(reminders, userKey);
     }
     
     return reminder;

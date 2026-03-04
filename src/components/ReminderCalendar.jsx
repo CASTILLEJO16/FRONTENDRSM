@@ -37,9 +37,9 @@ export default function ReminderCalendar({ reminders, onReminderClick, selectedD
 
   const getTypeIcon = (tipo) => {
     switch (tipo) {
-      case 'seguimiento': return MessageSquare;
-      case 'llamada': return Phone;
-      case 'visita': return Calendar;
+      case 'cita': return Calendar;
+      case 'reunion': return User;
+      case 'tarea': return Clock;
       default: return Bell;
     }
   };

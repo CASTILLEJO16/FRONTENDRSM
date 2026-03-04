@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { Plus, Calendar, Bell, Clock, CheckCircle } from "lucide-react";
+import { Plus, Calendar, Bell, Clock, CheckCircle, CalendarDays } from "lucide-react";
 import { AppContext } from "../context/AppContext";
 import ReminderForm from "../components/ReminderForm";
 import ReminderCalendar from "../components/ReminderCalendar";
@@ -7,15 +7,21 @@ import ReminderList from "../components/ReminderList";
 import { notificationService } from "../components/NotificationService";
 
 export default function Activity() {
-  const { clients, showAlert } = useContext(AppContext);
+  const { clients, showAlert, user } = useContext(AppContext);
   const [reminders, setReminders] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [editingReminder, setEditingReminder] = useState(null);
 
-  // Cargar recordatorios al montar
+  // Generar clave única para el usuario
+  const getUserKey = () => {
+    return user?.email ? `reminders_${user.email}` : 'reminders_guest';
+  };
+
+  // Cargar recordatorios al montar y cuando cambia el usuario
   useEffect(() => {
-    const storedReminders = notificationService.getStoredReminders();
+    const userKey = getUserKey();
+    const storedReminders = notificationService.getStoredReminders(userKey);
     setReminders(storedReminders);
     
     // Solicitar permiso de notificación
@@ -27,11 +33,12 @@ export default function Activity() {
     return () => {
       notificationService.stopChecking();
     };
-  }, []);
+  }, [user]);
 
   // Crear nuevo recordatorio
   const handleReminderCreated = (reminder) => {
-    const newReminder = notificationService.addReminder(reminder);
+    const userKey = getUserKey();
+    const newReminder = notificationService.addReminder(reminder, userKey);
     setReminders(prev => [...prev, newReminder]);
     setShowForm(false);
   };
@@ -44,7 +51,8 @@ export default function Activity() {
 
   // Actualizar recordatorio
   const handleReminderUpdate = (updatedReminder) => {
-    const updated = notificationService.updateReminder(updatedReminder);
+    const userKey = getUserKey();
+    const updated = notificationService.updateReminder(updatedReminder, userKey);
     setReminders(prev => prev.map(r => r.id === updated.id ? updated : r));
     setShowForm(false);
     setEditingReminder(null);
@@ -53,7 +61,8 @@ export default function Activity() {
   // Eliminar recordatorio
   const handleReminderDelete = (reminderId) => {
     if (confirm('¿Estás seguro de que quieres eliminar este recordatorio?')) {
-      const updated = notificationService.deleteReminder(reminderId);
+      const userKey = getUserKey();
+      const updated = notificationService.deleteReminder(reminderId, userKey);
       setReminders(updated);
       showAlert('success', 'Recordatorio eliminado correctamente');
     }
@@ -61,7 +70,8 @@ export default function Activity() {
 
   // Completar recordatorio
   const handleReminderComplete = (reminderId) => {
-    const completed = notificationService.completeReminder(reminderId);
+    const userKey = getUserKey();
+    const completed = notificationService.completeReminder(reminderId, userKey);
     setReminders(prev => prev.map(r => r.id === reminderId ? completed : r));
     showAlert('success', '¡Recordatorio completado! 🎉');
   };
@@ -85,10 +95,10 @@ export default function Activity() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-3">
-              <Calendar size={28} />
-              Recordatorios
+              <CalendarDays size={28} />
+              Mi Agenda
             </h1>
-            <p className="text-white/80 mt-2">Gestiona tus recordatorios y notificaciones programadas</p>
+            <p className="text-white/80 mt-2">Gestiona tus recordatorios y citas programadas</p>
           </div>
           
           <button

@@ -8,7 +8,7 @@ export default function ReminderForm({ clients, onReminderCreated, onReminderUpd
     titulo: "",
     descripcion: "",
     clienteId: "",
-    tipo: "seguimiento",
+    tipo: "cita",
     fecha: "",
     hora: "",
     prioridad: "media",
@@ -16,10 +16,10 @@ export default function ReminderForm({ clients, onReminderCreated, onReminderUpd
   });
 
   const tiposRecordatorio = [
-    { value: "seguimiento", label: "Seguimiento", icon: MessageSquare, color: "blue" },
-    { value: "llamada", label: "Llamada", icon: Phone, color: "green" },
-    { value: "visita", label: "Visita", icon: Calendar, color: "purple" },
-    { value: "general", label: "General", icon: User, color: "gray" }
+    { value: "cita", label: "Cita", icon: Calendar, color: "blue" },
+    { value: "reunion", label: "Reunión", icon: User, color: "purple" },
+    { value: "tarea", label: "Tarea", icon: Clock, color: "green" },
+    { value: "general", label: "General", icon: MessageSquare, color: "gray" }
   ];
 
   // Cargar datos si está editando
@@ -29,7 +29,7 @@ export default function ReminderForm({ clients, onReminderCreated, onReminderUpd
         titulo: reminder.titulo || "",
         descripcion: reminder.descripcion || "",
         clienteId: reminder.clienteId || "",
-        tipo: reminder.tipo || "seguimiento",
+        tipo: reminder.tipo || "cita",
         fecha: reminder.fecha || "",
         hora: reminder.hora || "",
         prioridad: reminder.prioridad || "media",
