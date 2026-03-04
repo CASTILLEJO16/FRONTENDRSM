@@ -8,7 +8,7 @@ export default function ClientForm({
   editing = null,
 }) {
 
-  // 🔥 FUNCIÓN PARA FECHA LOCAL CORRECTA (sin problema de UTC)
+  //  FUNCIÓN PARA FECHA LOCAL CORRECTA (sin problema de UTC)
   function getLocalDate() {
     const d = new Date();
     d.setMinutes(d.getMinutes() - d.getTimezoneOffset());

@@ -43,22 +43,22 @@ export default function Clients() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="max-w-7xl mx-auto space-y-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Clientes</h1>
-          <p className="text-sm text-slate-400">Gestiona tu lista de clientes</p>
+          <h1 className="text-3xl font-bold text-slate-100">Clientes</h1>
+          <p className="text-sm text-slate-400 mt-1">Gestiona tu lista de clientes</p>
         </div>
         <div className="flex items-center gap-3">
           <input 
             value={search} 
             onChange={e => setSearch(e.target.value)} 
             placeholder="Buscar clientes..." 
-            className="pl-3 pr-3 py-2 rounded bg-slate-800 border border-slate-700 text-slate-200" 
+            className="pl-4 pr-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200" 
           />
           <button 
             onClick={() => { setOpen(true); setEditing(null); }} 
-            className="bg-indigo-600 px-4 py-2 rounded hover:bg-indigo-700 transition-colors"
+            className="bg-indigo-600 px-6 py-3 rounded-xl text-white font-medium hover:bg-indigo-700 transition-colors shadow-soft hover:shadow-soft-lg"
           >
             Nuevo Cliente
           </button>

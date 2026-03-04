@@ -20,12 +20,12 @@ export default function Toast() {
   };
 
   return (
-    <div className="fixed top-4 right-4 z-50 animate-slide-in">
+    <div className="fixed top-6 right-6 z-[9999] animate-slide-in">
       <div
         className={`
           ${colors[alert.type]} 
-          text-white px-4 py-3 rounded-lg shadow-2xl border-l-4
-          flex items-center gap-3 min-w-[300px] max-w-md
+          text-white px-6 py-4 rounded-2xl shadow-soft-lg border-l-4
+          flex items-center gap-4 min-w-[350px] max-w-lg
           backdrop-blur-sm
         `}
       >
@@ -33,9 +33,9 @@ export default function Toast() {
         <span className="flex-1 font-medium">{alert.msg}</span>
         <button
           onClick={() => setAlert(null)}
-          className="hover:bg-white/20 p-1 rounded transition"
+          className="hover:bg-white/20 p-2 rounded-xl transition"
         >
-          <X className="w-4 h-4" />
+          <X className="w-5 h-5" />
         </button>
       </div>
     </div>

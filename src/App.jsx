@@ -18,6 +18,15 @@ import Historial from "./pages/HistoryPage";
 import MobileNavbar from "./components/MobileNavbar";
 import InstallPWA from "./components/InstallPWA";
 
+// Page wrapper con animaciones
+function PageWrapper({ children }) {
+  return (
+    <div className="animate-page-enter">
+      {children}
+    </div>
+  );
+}
+
 export default function App() {
   const { token } = useContext(AppContext);
 
@@ -36,29 +45,55 @@ export default function App() {
             <Route path="*" element={<Navigate to="/login" />} />
           </>
         ) : (
-          <>
-            <Route path="*" element={
-              <div className="min-h-screen bg-slate-900 text-slate-100">
-                <Sidebar />
-                <div className="md:pl-64">
-                  <Topbar />
-                  <main className="p-6">
-                    <Routes>
-                      <Route path="/dashboard" element={<Dashboard />} />
-                      <Route path="/clients" element={<Clients />} />
-                      <Route path="/analytics" element={<Analytics />} />
-                      <Route path="/reports" element={<Reports />} />
-                      <Route path="/activity" element={<Activity />} />
-                      <Route path="/settings" element={<Settings />} />
-                      <Route path="/historial" element={<Historial />} />
-                      <Route path="*" element={<Navigate to="/dashboard" />} />
-                    </Routes>
-                  </main>
-                </div>
-                <MobileNavbar />
+          <Route path="*" element={
+            <div className="min-h-screen bg-slate-950 text-slate-100 overflow-x-hidden">
+              <Sidebar />
+              <div className="md:pl-16">
+                <Topbar />
+                <main className="p-4 md:p-6 max-w-full overflow-x-hidden">
+                  <Routes>
+                    <Route path="/dashboard" element={
+                      <PageWrapper>
+                        <Dashboard />
+                      </PageWrapper>
+                    } />
+                    <Route path="/clients" element={
+                      <PageWrapper>
+                        <Clients />
+                      </PageWrapper>
+                    } />
+                    <Route path="/analytics" element={
+                      <PageWrapper>
+                        <Analytics />
+                      </PageWrapper>
+                    } />
+                    <Route path="/reports" element={
+                      <PageWrapper>
+                        <Reports />
+                      </PageWrapper>
+                    } />
+                    <Route path="/activity" element={
+                      <PageWrapper>
+                        <Activity />
+                      </PageWrapper>
+                    } />
+                    <Route path="/settings" element={
+                      <PageWrapper>
+                        <Settings />
+                      </PageWrapper>
+                    } />
+                    <Route path="/historial" element={
+                      <PageWrapper>
+                        <Historial />
+                      </PageWrapper>
+                    } />
+                    <Route path="*" element={<Navigate to="/dashboard" />} />
+                  </Routes>
+                </main>
               </div>
-            } />
-          </>
+              <MobileNavbar />
+            </div>
+          } />
         )}
       </Routes>
     </BrowserRouter>

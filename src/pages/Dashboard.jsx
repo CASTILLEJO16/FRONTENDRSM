@@ -66,16 +66,16 @@ export default function Dashboard() {
   }, [clientesFiltrados]);
 
   return (
-    <div className="pb-20"> {/* espacio para barra móvil */}
+    <div className="pb-20">
 
       {/* Header móvil */}
-      <div className="bg-indigo-600 text-white p-4 md:p-6 rounded-b-2xl shadow-lg">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center">
-            <User size={32} />
+      <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 text-white p-8 md:p-10 rounded-3xl shadow-soft-lg mb-8">
+        <div className="flex items-center gap-6">
+          <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+            <User size={36} />
           </div>
           <div>
-            <h1 className="text-xl font-bold">
+            <h1 className="text-2xl font-bold">
               {currentUser?.nombre || "Vendedor"}
             </h1>
             <p className="text-sm text-white/80">@{currentUser?.username}</p>
@@ -83,52 +83,60 @@ export default function Dashboard() {
         </div>
 
         {/* Selector periodo */}
-        <div className="mt-4 bg-white/10 p-2 rounded-lg backdrop-blur-sm">
+        <div className="mt-6 bg-white/10 p-3 rounded-2xl backdrop-blur-sm">
           <select
             value={periodo}
             onChange={(e) => setPeriodo(e.target.value)}
-            className="w-full bg-white/20 px-3 py-2 rounded-lg text-white focus:outline-none"
+            className="w-full bg-white/20 px-4 py-3 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/30"
           >
-            <option value="hoy" className="text-black">Hoy</option>
-            <option value="semana" className="text-black">Esta semana</option>
-            <option value="mes" className="text-black">Este mes</option>
-            <option value="todo" className="text-black">Todo el tiempo</option>
+            <option value="hoy" className="text-slate-900">Hoy</option>
+            <option value="semana" className="text-slate-900">Esta semana</option>
+            <option value="mes" className="text-slate-900">Este mes</option>
+            <option value="todo" className="text-slate-900">Todo el tiempo</option>
           </select>
         </div>
       </div>
 
       {/* Tarjetas estadísticas (optimizado móvil) */}
-      <div className="p-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      <div className="px-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 mb-8">
 
         {/* CARD */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-          <DollarSign className="text-green-400 mb-2" size={22} />
-          <p className="text-slate-400 text-xs">Total ventas</p>
-          <p className="text-lg font-bold text-white">
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-soft hover:shadow-soft-lg transition-all duration-300">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center mb-4">
+            <DollarSign className="text-emerald-400" size={20} />
+          </div>
+          <p className="text-slate-400 text-sm font-medium mb-1">Total ventas</p>
+          <p className="text-2xl font-bold text-slate-100">
             ${stats.totalVentas.toLocaleString()}
           </p>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-          <Users className="text-blue-400 mb-2" size={22} />
-          <p className="text-slate-400 text-xs">Clientes</p>
-          <p className="text-lg font-bold text-white">
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-soft hover:shadow-soft-lg transition-all duration-300">
+          <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center mb-4">
+            <Users className="text-indigo-400" size={20} />
+          </div>
+          <p className="text-slate-400 text-sm font-medium mb-1">Clientes</p>
+          <p className="text-2xl font-bold text-slate-100">
             {stats.numClientes}
           </p>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-          <ShoppingCart className="text-purple-400 mb-2" size={22} />
-          <p className="text-slate-400 text-xs">Compraron</p>
-          <p className="text-lg font-bold text-white">
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-soft hover:shadow-soft-lg transition-all duration-300">
+          <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center mb-4">
+            <ShoppingCart className="text-purple-400" size={20} />
+          </div>
+          <p className="text-slate-400 text-sm font-medium mb-1">Compraron</p>
+          <p className="text-2xl font-bold text-slate-100">
             {stats.clientesCompraron}
           </p>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-          <TrendingUp className="text-amber-400 mb-2" size={22} />
-          <p className="text-slate-400 text-xs">Promedio</p>
-          <p className="text-lg font-bold text-white">
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-soft hover:shadow-soft-lg transition-all duration-300">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center mb-4">
+            <TrendingUp className="text-amber-400" size={20} />
+          </div>
+          <p className="text-slate-400 text-sm font-medium mb-1">Promedio</p>
+          <p className="text-2xl font-bold text-slate-100">
             ${stats.promedioPorVenta.toFixed(0)}
           </p>
         </div>
@@ -136,21 +144,21 @@ export default function Dashboard() {
       </div>
 
       {/* Resumen */}
-      <div className="p-4">
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-          <h3 className="text-lg font-semibold text-white mb-3">Resumen</h3>
+      <div className="px-4">
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-soft">
+          <h3 className="text-xl font-bold text-slate-100 mb-6">Resumen</h3>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="bg-slate-800 p-3 rounded-lg">
-              <p className="text-slate-400 text-xs">Sin compra</p>
-              <p className="text-xl font-bold text-white">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div className="bg-slate-800 p-6 rounded-xl">
+              <p className="text-slate-400 text-sm font-medium mb-2">Sin compra</p>
+              <p className="text-3xl font-bold text-slate-100">
                 {stats.numClientes - stats.clientesCompraron}
               </p>
             </div>
 
-            <div className="bg-slate-800 p-3 rounded-lg">
-              <p className="text-slate-400 text-xs">Mejor venta</p>
-              <p className="text-xl font-bold text-white">
+            <div className="bg-slate-800 p-6 rounded-xl">
+              <p className="text-slate-400 text-sm font-medium mb-2">Mejor venta</p>
+              <p className="text-3xl font-bold text-slate-100">
                 $
                 {Math.max(
                   ...clientesFiltrados.flatMap((c) =>
@@ -161,9 +169,9 @@ export default function Dashboard() {
               </p>
             </div>
 
-            <div className="bg-slate-800 p-3 rounded-lg">
-              <p className="text-slate-400 text-xs">Transacciones</p>
-              <p className="text-xl font-bold text-white">
+            <div className="bg-slate-800 p-6 rounded-xl">
+              <p className="text-slate-400 text-sm font-medium mb-2">Transacciones</p>
+              <p className="text-3xl font-bold text-slate-100">
                 {clientesFiltrados.reduce(
                   (sum, c) => sum + (c.ventas?.length || 0),
                   0
@@ -174,35 +182,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* BARRA INFERIOR TIPO APP */}
-      <div className="fixed bottom-0 left-0 w-full bg-slate-900 border-t border-slate-800 py-2 flex justify-around sm:hidden">
-
-        <button className="flex flex-col items-center text-white/70 hover:text-white">
-          <Home size={22} />
-          <span className="text-xs mt-1">Inicio</span>
-        </button>
-
-        <button className="flex flex-col items-center text-white/70 hover:text-white">
-          <Users size={22} />
-          <span className="text-xs mt-1">Clientes</span>
-        </button>
-
-        <button className="flex flex-col items-center text-white/70 hover:text-white">
-          <DollarSign size={22} />
-          <span className="text-xs mt-1">Ventas</span>
-        </button>
-
-        <button className="flex flex-col items-center text-white/70 hover:text-white">
-          <BarChart2 size={22} />
-          <span className="text-xs mt-1">Stats</span>
-        </button>
-
-        <button className="flex flex-col items-center text-white/70 hover:text-white">
-          <User size={22} />
-          <span className="text-xs mt-1">Perfil</span>
-        </button>
-
       </div>
-    </div>
   );
 }
