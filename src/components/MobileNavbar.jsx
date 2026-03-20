@@ -1,12 +1,14 @@
-import React, { useContext } from "react";
-import { Home, Users, BarChart2, Settings, History, FileText, Bell } from "lucide-react";
+import React, { useContext, useState } from "react";
+import { Home, Users, BarChart2, Settings, History, FileText, Bell, LogOut } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
+import ConfirmDialog from "./ConfirmDialog";
 
 export default function MobileNavbar() {
   const { pathname } = useLocation();
-  const { currentUser } = useContext(AppContext);
+  const { currentUser, logout, showAlert } = useContext(AppContext);
   const role = currentUser?.role || "vendedor";
+  const [confirmLogout, setConfirmLogout] = useState(false);
 
   const isActive = (path) =>
     pathname === path ? "text-indigo-400" : "text-slate-400";
@@ -48,11 +50,36 @@ export default function MobileNavbar() {
         <History size={20} />
       </Link>
 
+      {(role === "vendedor" || role === "gerente") && (
+        <button
+          type="button"
+          onClick={() => setConfirmLogout(true)}
+          className="flex flex-col items-center text-slate-400 hover:text-slate-200 transition-colors"
+          title="Cerrar sesión"
+        >
+          <LogOut size={20} />
+        </button>
+      )}
+
       {role === "admin" && (
         <Link to="/settings" className={`flex flex-col items-center ${isActive("/settings")} transition-colors`} title="Ajustes">
           <Settings size={20} />
         </Link>
       )}
+
+      <ConfirmDialog
+        open={confirmLogout}
+        title="¿Cerrar sesión?"
+        message="¿Estás seguro que deseas cerrar tu sesión?"
+        confirmText="Cerrar sesión"
+        confirmButtonClassName="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+        onConfirm={() => {
+          setConfirmLogout(false);
+          logout();
+          showAlert("success", "Sesión cerrada");
+        }}
+        onCancel={() => setConfirmLogout(false)}
+      />
     </div>
   );
 }

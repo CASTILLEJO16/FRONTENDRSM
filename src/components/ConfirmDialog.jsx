@@ -1,7 +1,17 @@
 import React from "react";
 import { AlertTriangle } from "lucide-react";
 
-export default function ConfirmDialog({ open, title, message, onConfirm, onCancel }) {
+export default function ConfirmDialog({
+  open,
+  title,
+  message,
+  onConfirm,
+  onCancel,
+  confirmText = "Eliminar",
+  cancelText = "Cancelar",
+  confirmButtonClassName = "flex-1 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors",
+  cancelButtonClassName = "flex-1 px-4 py-2 border border-slate-700 rounded-lg text-slate-300 hover:bg-slate-800 transition-colors"
+}) {
   if (!open) return null;
 
   return (
@@ -28,15 +38,15 @@ export default function ConfirmDialog({ open, title, message, onConfirm, onCance
         <div className="flex gap-3">
           <button
             onClick={onCancel}
-            className="flex-1 px-4 py-2 border border-slate-700 rounded-lg text-slate-300 hover:bg-slate-800 transition-colors"
+            className={cancelButtonClassName}
           >
-            Cancelar
+            {cancelText}
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors"
+            className={confirmButtonClassName}
           >
-            Eliminar
+            {confirmText}
           </button>
         </div>
       </div>
