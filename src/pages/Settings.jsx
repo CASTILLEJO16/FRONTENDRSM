@@ -1,10 +1,12 @@
 import React, { useContext, useState } from "react";
 import { AppContext } from "../context/AppContext";
 import { LogOut } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function Settings() {
-  const { logout, showAlert } = useContext(AppContext);
+  const { logout, showAlert, currentUser } = useContext(AppContext);
   const [showConfirm, setShowConfirm] = useState(false);
+  const role = currentUser?.role || "vendedor";
 
   const handleLogout = () => {
     setShowConfirm(true);
@@ -24,6 +26,18 @@ export default function Settings() {
       </div>
 
       <div className="space-y-4 px-4">
+        {role === "admin" && (
+          <div className="border border-slate-700 rounded-2xl p-4 bg-slate-900 shadow-soft">
+            <div className="text-lg font-semibold text-slate-100">AdministraciÃ³n</div>
+            <div className="text-slate-400 text-sm mt-1">Gestiona usuarios y roles</div>
+            <Link
+              to="/admin/users"
+              className="inline-flex mt-4 bg-indigo-600 text-white px-4 py-3 rounded-xl hover:bg-indigo-700 transition font-semibold shadow-soft"
+            >
+              Administrar usuarios
+            </Link>
+          </div>
+        )}
 
         {/* ============ SESIÓN (SOLO MÓVIL) ============ */}
         <details className="border border-slate-700 rounded-2xl p-4 md:hidden bg-slate-900 shadow-soft">

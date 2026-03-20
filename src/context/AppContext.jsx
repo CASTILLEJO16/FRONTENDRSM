@@ -49,6 +49,27 @@ export function AppProvider({ children }) {
     showAlert("success", "Usuario registrado. Inicia sesión.");
   };
 
+  // ADMIN (Usuarios/Roles)
+  const listUsers = async () => {
+    const res = await API.get("/auth/users");
+    return res.data;
+  };
+
+  const updateUserRole = async (userId, role) => {
+    const res = await API.patch(`/auth/users/${userId}/role`, { role });
+    return res.data;
+  };
+
+  const registerUserAsAdmin = async ({ username, password, nombre, role }) => {
+    await API.post("/auth/register", { username, password, nombre, role });
+    showAlert("success", "Usuario creado");
+  };
+
+  const listSalesUsers = async () => {
+    const res = await API.get("/auth/sales-users");
+    return res.data;
+  };
+
   const logout = () => {
     setToken(null);
     setCurrentUser(null);
@@ -71,20 +92,39 @@ export function AppProvider({ children }) {
   };
 
   const createClient = async (payload) => {
-    const res = await API.post("/clients", payload);
-    setClients((p) => [res.data, ...p]);
-    return res.data;
+    try {
+      const res = await API.post("/clients", payload);
+      setClients((p) => [res.data, ...p]);
+      return res.data;
+    } catch (e) {
+      console.error(e);
+      showAlert("error", e?.response?.data?.msg || "No autorizado");
+      throw e;
+    }
   };
 
   const updateClient = async (id, payload) => {
-    const res = await API.put(`/clients/${id}`, payload);
-    setClients((p) => p.map((c) => (c._id === id ? res.data : c)));
-    return res.data;
+    try {
+      const res = await API.put(`/clients/${id}`, payload);
+      setClients((p) => p.map((c) => (c._id === id ? res.data : c)));
+      return res.data;
+    } catch (e) {
+      console.error(e);
+      showAlert("error", e?.response?.data?.msg || "No autorizado");
+      throw e;
+    }
   };
 
   const deleteClient = async (id) => {
-    await API.delete(`/clients/${id}`);
-    setClients((p) => p.filter((c) => c._id !== id));
+    try {
+      await API.delete(`/clients/${id}`);
+      setClients((p) => p.filter((c) => c._id !== id));
+      showAlert("success", "Cliente eliminado");
+    } catch (e) {
+      console.error(e);
+      showAlert("error", e?.response?.data?.msg || "No autorizado");
+      throw e;
+    }
   };
 
   // ✅ AGREGAR VENTA (ya estaba bien)
@@ -146,6 +186,10 @@ const enviarMensaje = async (clienteId, data) => {
         showAlert,
         login,
         register,
+        listUsers,
+        updateUserRole,
+        registerUserAsAdmin,
+        listSalesUsers,
         logout,
         fetchClients,
         createClient,

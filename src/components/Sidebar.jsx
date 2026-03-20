@@ -5,16 +5,26 @@ import { Menu, X, Home, Users, BarChart2, Settings, LogOut, History, FileText, B
 
 export default function Sidebar() {
   const [open, setOpen] = useState(false);
-  const { logout } = useContext(AppContext);
+  const { logout, currentUser } = useContext(AppContext);
+  const role = currentUser?.role || "vendedor";
 
   const links = [
     { to: "/dashboard", label: "Dashboard", icon: <Home size={20} /> },
     { to: "/clients", label: "Clientes", icon: <Users size={20} /> },
-    { to: "/analytics", label: "Análisis", icon: <BarChart2 size={20} /> },
-    { to: "/reports", label: "Reportes", icon: <FileText size={20} /> },
-    { to: "/activity", label: "Actividad", icon: <Bell size={20} /> },
+    ...(role === "admin" || role === "gerente" || role === "vendedor"
+      ? [
+          { to: "/analytics", label: "Análisis", icon: <BarChart2 size={20} /> },
+          { to: "/reports", label: "Reportes", icon: <FileText size={20} /> },
+        ]
+      : []),
+    { to: "/activity", label: "Agenda", icon: <Bell size={20} /> },
     { to: "/historial", label: "Historial", icon: <History size={20} /> },
-    { to: "/settings", label: "Configuración", icon: <Settings size={20} /> },
+    ...(role === "admin"
+      ? [
+          { to: "/admin/users", label: "Usuarios", icon: <Users size={20} /> },
+          { to: "/settings", label: "Configuración", icon: <Settings size={20} /> },
+        ]
+      : []),
   ];
 
   return (

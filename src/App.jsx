@@ -15,6 +15,7 @@ import Reports from "./pages/Reports";
 import Activity from "./pages/Activity";
 import Settings from "./pages/Settings";
 import Historial from "./pages/HistoryPage";
+import UsersAdmin from "./pages/UsersAdmin";
 import MobileNavbar from "./components/MobileNavbar";
 import InstallPWA from "./components/InstallPWA";
 
@@ -25,6 +26,14 @@ function PageWrapper({ children }) {
       {children}
     </div>
   );
+}
+
+function RequireRole({ allow, children }) {
+  const { currentUser } = useContext(AppContext);
+  const role = currentUser?.role || "vendedor";
+
+  if (!allow.includes(role)) return <Navigate to="/dashboard" replace />;
+  return children;
 }
 
 export default function App() {
@@ -64,12 +73,16 @@ export default function App() {
                     } />
                     <Route path="/analytics" element={
                       <PageWrapper>
-                        <Analytics />
+                        <RequireRole allow={["admin", "gerente", "vendedor"]}>
+                          <Analytics />
+                        </RequireRole>
                       </PageWrapper>
                     } />
                     <Route path="/reports" element={
                       <PageWrapper>
-                        <Reports />
+                        <RequireRole allow={["admin", "gerente", "vendedor"]}>
+                          <Reports />
+                        </RequireRole>
                       </PageWrapper>
                     } />
                     <Route path="/activity" element={
@@ -79,7 +92,16 @@ export default function App() {
                     } />
                     <Route path="/settings" element={
                       <PageWrapper>
-                        <Settings />
+                        <RequireRole allow={["admin"]}>
+                          <Settings />
+                        </RequireRole>
+                      </PageWrapper>
+                    } />
+                    <Route path="/admin/users" element={
+                      <PageWrapper>
+                        <RequireRole allow={["admin"]}>
+                          <UsersAdmin />
+                        </RequireRole>
                       </PageWrapper>
                     } />
                     <Route path="/historial" element={
