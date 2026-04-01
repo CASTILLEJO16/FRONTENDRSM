@@ -6,8 +6,10 @@ import BarSalesChart from "../components/BarSalesChart";
 import GoalsChart from "../components/GoalsChart";
 
 export default function Analytics() {
+  console.log('[Analytics] Componente renderizado, role:', useAuth().currentUser?.role);
+  
   const { clients } = useClients();
-  const { currentUser } = useAuth();
+  const { currentUser, listSalesUsers } = useAuth();
   const { showErrorAlert } = useNotifications();
   const role = currentUser?.role || "vendedor";
   const [salesUsers, setSalesUsers] = useState([]);
@@ -17,18 +19,24 @@ export default function Analytics() {
     const load = async () => {
       if (!(role === "admin" || role === "gerente")) return;
       try {
-        // TODO: Implementar listSalesUsers en el nuevo contexto
-        // const users = await listSalesUsers();
-        // setSalesUsers(users || []);
-        setSalesUsers([]); // Temporalmente vacío hasta implementar
+        console.log('[Analytics] Cargando vendedores...');
+        const result = await listSalesUsers();
+        console.log('[Analytics] Resultado:', result);
+        if (result.success) {
+          console.log('[Analytics] Vendedores cargados:', result.users?.length || 0);
+          setSalesUsers(result.users || []);
+        } else {
+          console.error('[Analytics] Error cargando vendedores:', result.error);
+          showErrorAlert("Error al cargar vendedores");
+        }
       } catch (error) {
-        console.error("Error loading sales users:", error);
+        console.error("[Analytics] Error loading sales users:", error);
         showErrorAlert("Error al cargar usuarios de ventas");
       }
     };
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [role, showErrorAlert]);
+  }, [role, showErrorAlert, listSalesUsers]);
 
   const viewClients = useMemo(() => {
     if (!(role === "admin" || role === "gerente")) return clients;
