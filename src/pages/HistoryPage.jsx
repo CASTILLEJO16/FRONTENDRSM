@@ -1,5 +1,5 @@
-import React, { useContext, useState } from 'react';
-import { AppContext } from '../context/AppContext';
+import React, { useState } from 'react';
+import { useClients } from '../context/ClientsContext';
 import { X } from 'lucide-react';
 
 // Modal para ver imagen en tamaño completo
@@ -196,11 +196,11 @@ function Historial({ clients }) {
 
 // Componente Principal - HistoryPage
 export default function HistoryPage() {
-  const { clients, fetchClients } = useContext(AppContext);
+  const { clients, fetchClients } = useClients();
 
   React.useEffect(() => {
     fetchClients();
-  }, []);
+  }, [fetchClients]);
 
   const handleRecargar = () => {
     fetchClients();

@@ -1,11 +1,10 @@
 
 import React from "react";
-import { useContext } from "react";
-import { AppContext } from "../context/AppContext";
+import { useClients } from "../context/ClientsContext";
 import { PieChart, Pie, Tooltip, Cell, Legend } from "recharts";
 
 export default function PieStatsChart() {
-  const { clients } = useContext(AppContext);
+  const { clients } = useClients();
 
   const data = clients.map((c) => ({
     name: c.name,

@@ -127,7 +127,7 @@ export function AppProvider({ children }) {
     }
   };
 
-  // ✅ AGREGAR VENTA (ya estaba bien)
+  // AGREGAR VENTA (ya estaba bien)
   const agregarVenta = async (id, payload) => {
     try {
       const res = await API.post(`/clients/${id}/ventas`, payload);
@@ -160,7 +160,7 @@ const enviarMensaje = async (clienteId, data) => {
   }
 };
 
-  // ✅ PUEDES ELIMINAR O ACTUALIZAR agregarObservacion (opcional)
+  // PUEDES ELIMINAR O ACTUALIZAR agregarObservacion (opcional)
   // Si prefieres mantener ambas funciones, puedes dejar esta:
   const agregarObservacion = async (id, texto) => {
     try {
@@ -197,7 +197,7 @@ const enviarMensaje = async (clienteId, data) => {
         deleteClient,
         agregarVenta,
         agregarObservacion,
-        enviarMensaje, // ✅ AGREGAR ESTA FUNCIÓN
+        enviarMensaje, 
       }}
     >
       {children}

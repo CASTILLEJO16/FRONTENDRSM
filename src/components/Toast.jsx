@@ -1,43 +1,43 @@
-import React, { useContext } from "react";
-import { AppContext } from "../context/AppContext";
+import React from "react";
+import { useNotifications } from "../context/NotificationsContext";
 import { CheckCircle, XCircle, AlertCircle, X } from "lucide-react";
 
 export default function Toast() {
-  const { alert, setAlert } = useContext(AppContext);
+  const { toasts, removeToast } = useNotifications();
 
-  if (!alert) return null;
+  if (toasts.length === 0) return null;
 
   const icons = {
-    success: <CheckCircle className="w-5 h-5" />,
-    error: <XCircle className="w-5 h-5" />,
-    info: <AlertCircle className="w-5 h-5" />
-  };
-
-  const colors = {
-    success: "bg-emerald-500 border-emerald-600",
-    error: "bg-red-500 border-red-600",
-    info: "bg-blue-500 border-blue-600"
+    success: <CheckCircle className="w-5 h-5 text-emerald-400" />,
+    error: <XCircle className="w-5 h-5 text-rose-400" />,
+    info: <AlertCircle className="w-5 h-5 text-blue-400" />,
+    warning: <AlertCircle className="w-5 h-5 text-yellow-400" />
   };
 
   return (
-    <div className="fixed top-6 right-6 z-[9999] animate-slide-in">
-      <div
-        className={`
-          ${colors[alert.type]} 
-          text-white px-6 py-4 rounded-2xl shadow-soft-lg border-l-4
-          flex items-center gap-4 min-w-[350px] max-w-lg
-          backdrop-blur-sm
-        `}
-      >
-        {icons[alert.type]}
-        <span className="flex-1 font-medium">{alert.msg}</span>
-        <button
-          onClick={() => setAlert(null)}
-          className="hover:bg-white/20 p-2 rounded-xl transition"
+    <div className="fixed top-4 right-4 z-50 space-y-2">
+      {toasts.map((toast) => (
+        <div
+          key={toast.id}
+          className={`flex items-center gap-3 p-4 rounded-lg shadow-lg backdrop-blur-sm border max-w-sm transition-all duration-300 transform
+            ${toast.type === 'success' ? 'bg-emerald-900/90 border-emerald-700 text-emerald-100' : ''}
+            ${toast.type === 'error' ? 'bg-rose-900/90 border-rose-700 text-rose-100' : ''}
+            ${toast.type === 'info' ? 'bg-blue-900/90 border-blue-700 text-blue-100' : ''}
+            ${toast.type === 'warning' ? 'bg-yellow-900/90 border-yellow-700 text-yellow-100' : ''}
+          `}
         >
-          <X className="w-5 h-5" />
-        </button>
-      </div>
+          {icons[toast.type] || icons.info}
+          <div className="flex-1">
+            <p className="text-sm font-medium">{toast.message}</p>
+          </div>
+          <button
+            onClick={() => removeToast(toast.id)}
+            className="text-current/60 hover:text-current transition-colors p-1 rounded"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      ))}
     </div>
   );
 }

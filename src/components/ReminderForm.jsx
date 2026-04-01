@@ -1,9 +1,9 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Calendar, Clock, MessageSquare, Phone, User, X, Save } from "lucide-react";
-import { AppContext } from "../context/AppContext";
+import { useNotifications } from "../context/NotificationsContext";
 
 export default function ReminderForm({ clients, onReminderCreated, onReminderUpdated, reminder, onClose }) {
-  const { showAlert } = useContext(AppContext);
+  const { showSuccessAlert, showErrorAlert } = useNotifications();
   const [formData, setFormData] = useState({
     titulo: "",
     descripcion: "",
@@ -42,7 +42,7 @@ export default function ReminderForm({ clients, onReminderCreated, onReminderUpd
     e.preventDefault();
     
     if (!formData.titulo || !formData.fecha || !formData.hora) {
-      showAlert("error", "Por favor completa los campos obligatorios");
+      showErrorAlert("Por favor completa los campos obligatorios");
       return;
     }
 
@@ -56,10 +56,10 @@ export default function ReminderForm({ clients, onReminderCreated, onReminderUpd
 
     if (reminder) {
       onReminderUpdated(reminderData);
-      showAlert("success", "Recordatorio actualizado correctamente");
+      showSuccessAlert("Recordatorio actualizado correctamente");
     } else {
       onReminderCreated(reminderData);
-      showAlert("success", "Recordatorio creado correctamente");
+      showSuccessAlert("Recordatorio creado correctamente");
     }
     
     onClose();

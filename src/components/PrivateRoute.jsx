@@ -1,9 +1,8 @@
-import { useContext } from "react";
 import { Navigate } from "react-router-dom";
-import { AppContext } from "../context/AppContext";
+import { useAuth } from "../context/AuthContext";
 
 export default function PrivateRoute({ children }) {
-  const { token } = useContext(AppContext);
+  const { token } = useAuth();
 
   // si NO hay token → lo manda a login
   if (!token) {

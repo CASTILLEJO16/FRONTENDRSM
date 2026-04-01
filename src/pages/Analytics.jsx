@@ -1,10 +1,14 @@
-import React, { useContext, useEffect, useMemo, useState } from "react";
-import { AppContext } from "../context/AppContext";
+import React, { useEffect, useMemo, useState } from "react";
+import { useClients } from "../context/ClientsContext";
+import { useAuth } from "../context/AuthContext";
+import { useNotifications } from "../context/NotificationsContext";
 import BarSalesChart from "../components/BarSalesChart";
 import GoalsChart from "../components/GoalsChart";
 
 export default function Analytics() {
-  const { clients, currentUser, listSalesUsers, showAlert } = useContext(AppContext);
+  const { clients } = useClients();
+  const { currentUser } = useAuth();
+  const { showErrorAlert } = useNotifications();
   const role = currentUser?.role || "vendedor";
   const [salesUsers, setSalesUsers] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState("");
@@ -13,17 +17,18 @@ export default function Analytics() {
     const load = async () => {
       if (!(role === "admin" || role === "gerente")) return;
       try {
-        const users = await listSalesUsers();
-        setSalesUsers(users || []);
-      } catch (e) {
-        console.error(e);
-        showAlert("error", e?.response?.data?.msg || "Error cargando vendedores");
+        // TODO: Implementar listSalesUsers en el nuevo contexto
+        // const users = await listSalesUsers();
+        // setSalesUsers(users || []);
+        setSalesUsers([]); // Temporalmente vacío hasta implementar
+      } catch (error) {
+        console.error("Error loading sales users:", error);
+        showErrorAlert("Error al cargar usuarios de ventas");
       }
     };
-
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [role]);
+  }, [role, showErrorAlert]);
 
   const viewClients = useMemo(() => {
     if (!(role === "admin" || role === "gerente")) return clients;

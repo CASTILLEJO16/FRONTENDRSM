@@ -1,9 +1,9 @@
-import React, { useContext } from "react";
-import { AppContext } from "../context/AppContext";
+import React from "react";
+import { useAuth } from "../context/AuthContext";
 import { Search } from "lucide-react";
 
 export default function Topbar() {
-  const { currentUser } = useContext(AppContext);
+  const { currentUser } = useAuth();
 
   return (
     <header className="flex items-center justify-between px-8 py-6 bg-slate-900/60 border-b border-slate-800 backdrop-blur-sm">

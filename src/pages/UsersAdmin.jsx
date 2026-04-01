@@ -1,10 +1,12 @@
-import React, { useContext, useEffect, useMemo, useState } from "react";
-import { AppContext } from "../context/AppContext";
+import React, { useEffect, useMemo, useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import { useNotifications } from "../context/NotificationsContext";
 
 const ROLES = ["admin", "gerente", "vendedor"];
 
 export default function UsersAdmin() {
-  const { currentUser, listUsers, updateUserRole, registerUserAsAdmin, showAlert } = useContext(AppContext);
+  const { currentUser, listUsers, updateUserRole, registerUserAsAdmin } = useAuth();
+  const { showSuccessAlert, showErrorAlert } = useNotifications();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -14,11 +16,15 @@ export default function UsersAdmin() {
   const load = async () => {
     setLoading(true);
     try {
-      const data = await listUsers();
-      setUsers(data || []);
-    } catch (e) {
-      console.error(e);
-      showAlert("error", e?.response?.data?.msg || "No autorizado");
+      const result = await listUsers();
+      if (result.success) {
+        setUsers(result.users || []);
+      } else {
+        showErrorAlert("Error al cargar usuarios");
+      }
+    } catch (error) {
+      console.error("Error loading users:", error);
+      showErrorAlert("Error al cargar usuarios");
     } finally {
       setLoading(false);
     }
@@ -41,12 +47,16 @@ export default function UsersAdmin() {
     if (!ROLES.includes(role)) return;
 
     try {
-      const updated = await updateUserRole(userId, role);
-      setUsers((prev) => prev.map((u) => (String(u._id) === String(userId) ? updated : u)));
-      showAlert("success", "Rol actualizado");
+      const result = await updateUserRole(userId, role);
+      if (result.success) {
+        setUsers((prev) => prev.map((u) => (String(u._id) === String(userId) ? result.user : u)));
+        showSuccessAlert("Rol actualizado");
+      } else {
+        showErrorAlert("Error al actualizar rol");
+      }
     } catch (e) {
       console.error(e);
-      showAlert("error", e?.response?.data?.msg || "Error actualizando rol");
+      showErrorAlert(e?.response?.data?.msg || "Error actualizando rol");
     }
   };
 
@@ -55,25 +65,30 @@ export default function UsersAdmin() {
   const createUser = async (e) => {
     e.preventDefault();
     if (!form.username || !form.password || !form.nombre) {
-      showAlert("error", "Faltan campos");
+      showErrorAlert("Faltan campos");
       return;
     }
 
     setCreating(true);
     try {
-      await registerUserAsAdmin(form);
-      setForm({ username: "", password: "", nombre: "", role: "vendedor" });
-      await load();
+      const result = await registerUserAsAdmin(form);
+      if (result.success) {
+        showSuccessAlert("Usuario creado exitosamente");
+        setForm({ username: "", password: "", nombre: "", role: "vendedor" });
+        await load();
+      } else {
+        showErrorAlert("Error al crear usuario");
+      }
     } catch (err) {
       console.error(err);
-      showAlert("error", err?.response?.data?.msg || "Error creando usuario");
+      showErrorAlert(err?.response?.data?.msg || "Error creando usuario");
     } finally {
       setCreating(false);
     }
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
+    <div className="max-w-7xl mx-auto space-y-8 animate-page-enter">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-100">Usuarios</h1>

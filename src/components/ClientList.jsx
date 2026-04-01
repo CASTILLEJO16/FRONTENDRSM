@@ -1,19 +1,169 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useCallback } from "react";
 import { Edit2, Trash2, Plus, QrCode } from "lucide-react";
-import { AppContext } from "../context/AppContext";
+import { useClients } from "../context/ClientsContext";
+import { useErrorHandler } from "../hooks/useErrorHandler";
+import { SkeletonCard } from "./ui/Skeleton";
 import ConfirmDialog from "./ConfirmDialog";
 import SaleForm from "./SaleForm";
 import ObservationModal from "./ObservationModal";
 import QRModal from "./QRModal";
 
-export default function ClientList({ clients = [], onEdit, onDelete }) {
-  const { enviarMensaje, fetchClients, agregarVenta } = useContext(AppContext);
+export default function ClientList({ onEdit, onDelete }) {
+  const { clients, isLoading } = useClients();
+  const { handleError } = useErrorHandler();
   
   const [confirmDelete, setConfirmDelete] = useState({ open: false, client: null });
   const [saleForm, setSaleForm] = useState({ open: false, client: null });
   const [showObservationModal, setShowObservationModal] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
   const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
+
+  // Handlers optimizados con useCallback
+  const handleQRClick = useCallback((client) => {
+    setClienteSeleccionado(client);
+    setShowQRModal(true);
+  }, []);
+
+  const handleSaleClick = useCallback((client) => {
+    setSaleForm({ open: true, client });
+  }, []);
+
+  const handleEditClick = useCallback((client) => {
+    onEdit(client);
+  }, [onEdit]);
+
+  const handleDeleteClick = useCallback((client) => {
+    setConfirmDelete({ open: true, client });
+  }, []);
+
+  const handleObservationClick = useCallback((client) => {
+    setClienteSeleccionado(client);
+    setShowObservationModal(true);
+  }, []);
+
+  const handleQRClose = useCallback(() => {
+    setShowQRModal(false);
+    setClienteSeleccionado(null);
+  }, []);
+
+  const handleDeleteConfirm = useCallback(() => {
+    onDelete(confirmDelete.client._id);
+    setConfirmDelete({ open: false, client: null });
+  }, [onDelete, confirmDelete.client]);
+
+  const handleDeleteCancel = useCallback(() => {
+    setConfirmDelete({ open: false, client: null });
+  }, []);
+
+  const handleSaleClose = useCallback(() => {
+    setSaleForm({ open: false, client: null });
+  }, []);
+
+  const handleSaleSave = useCallback(async (venta) => {
+    const { agregarVenta } = useClients();
+    try {
+      await agregarVenta(saleForm.client._id, venta);
+      setSaleForm({ open: false, client: null });
+    } catch (error) {
+      handleError(error, {
+        context: 'handleSaleSave',
+        userMessage: 'Error al registrar la venta',
+        showToast: true
+      });
+    }
+  }, [saleForm.client, handleError]);
+
+  const handleObservationClose = useCallback(() => {
+    setShowObservationModal(false);
+    setClienteSeleccionado(null);
+  }, []);
+
+  const handleObservationSave = useCallback(async (data) => {
+    const { enviarMensaje } = useClients();
+    try {
+      await enviarMensaje(clienteSeleccionado._id, data);
+      setShowObservationModal(false);
+      setClienteSeleccionado(null);
+    } catch (error) {
+      handleError(error, {
+        context: 'handleObservationSave',
+        userMessage: 'Error al enviar el mensaje',
+        showToast: true
+      });
+    }
+  }, [clienteSeleccionado, handleError]);
+
+  // Mostrar skeletons durante carga
+  if (isLoading) {
+    return (
+      <>
+        {/* 📱 VISTA MÓVIL - Skeleton Cards */}
+        <div className="block lg:hidden space-y-4">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
+
+        {/* 🖥️ VISTA DESKTOP - Skeleton Table */}
+        <div className="hidden lg:block bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-slate-850 text-slate-300 text-xs">
+                <tr>
+                  <th className="px-6 py-3 text-left">Cliente</th>
+                  <th className="px-6 py-3 text-left">Contacto</th>
+                  <th className="px-6 py-3 text-left">Vendedor</th>
+                  <th className="px-6 py-3 text-left">Total Ventas</th>
+                  <th className="px-6 py-3 text-left">Fecha</th>
+                  <th className="px-6 py-3 text-left">Estado</th>
+                  <th className="px-6 py-3 text-left">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="text-slate-200">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={i} className="border-b border-slate-800">
+                    <td className="px-6 py-4">
+                      <div className="animate-pulse">
+                        <div className="h-5 w-32 bg-slate-800 rounded mb-1"></div>
+                        <div className="h-4 w-24 bg-slate-800 rounded"></div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="animate-pulse">
+                        <div className="h-4 w-28 bg-slate-800 rounded mb-1"></div>
+                        <div className="h-3 w-20 bg-slate-800 rounded"></div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="animate-pulse h-6 w-24 bg-slate-800 rounded-full"></div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="animate-pulse h-5 w-20 bg-slate-800 rounded"></div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="animate-pulse h-4 w-24 bg-slate-800 rounded"></div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="animate-pulse h-6 w-20 bg-slate-800 rounded-full"></div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex gap-2">
+                        <div className="animate-pulse w-8 h-8 bg-slate-800 rounded"></div>
+                        <div className="animate-pulse w-8 h-8 bg-slate-800 rounded"></div>
+                        <div className="animate-pulse w-8 h-8 bg-slate-800 rounded"></div>
+                        <div className="animate-pulse w-8 h-8 bg-slate-800 rounded"></div>
+                        <div className="animate-pulse w-8 h-8 bg-slate-800 rounded"></div>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   if (!clients || clients.length === 0)
     return <div className="bg-slate-800 p-6 rounded">No hay clientes registrados</div>;
@@ -32,17 +182,14 @@ export default function ClientList({ clients = [], onEdit, onDelete }) {
               </div>
               <div className="flex gap-2">
                 <button 
-                  onClick={() => {
-                    setClienteSeleccionado(c);
-                    setShowQRModal(true);
-                  }}
+                  onClick={() => handleQRClick(c)}
                   className="text-blue-400 hover:text-blue-200 p-2 transition-colors" 
                   title="QR"
                 >
                   <QrCode size={20} />
                 </button>
                 <button 
-                  onClick={() => setSaleForm({ open: true, client: c })}
+                  onClick={() => handleSaleClick(c)}
                   className="text-emerald-400 hover:text-emerald-200 p-2 transition-colors" 
                   title="Venta"
                 >
@@ -114,23 +261,20 @@ export default function ClientList({ clients = [], onEdit, onDelete }) {
             {/* Acciones */}
             <div className="flex gap-2">
               <button 
-                onClick={() => onEdit(c)}
+                onClick={() => handleEditClick(c)}
                 className="flex-1 flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 py-2 rounded text-white text-sm transition-colors"
               >
                 <Edit2 size={16} />
                 Editar
               </button>
               <button 
-                onClick={() => {
-                  setClienteSeleccionado(c);
-                  setShowObservationModal(true);
-                }}
+                onClick={() => handleObservationClick(c)}
                 className="flex-1 flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 py-2 rounded text-white text-sm transition-colors"
               >
                 💬 Mensaje
               </button>
               <button 
-                onClick={() => setConfirmDelete({ open: true, client: c })}
+                onClick={() => handleDeleteClick(c)}
                 className="px-4 bg-rose-600 hover:bg-rose-700 py-2 rounded text-white text-sm transition-colors"
                 title="Eliminar"
               >
@@ -208,10 +352,7 @@ export default function ClientList({ clients = [], onEdit, onDelete }) {
                   <td className="px-6 py-4">
                     <div className="flex gap-2">
                       <button 
-                        onClick={() => {
-                          setClienteSeleccionado(c);
-                          setShowQRModal(true);
-                        }}
+                        onClick={() => handleQRClick(c)}
                         className="text-blue-400 hover:text-blue-200 transition-colors"
                         title="Ver código QR"
                       >
@@ -219,21 +360,21 @@ export default function ClientList({ clients = [], onEdit, onDelete }) {
                       </button>
                       
                       <button 
-                        onClick={() => setSaleForm({ open: true, client: c })} 
+                        onClick={() => handleSaleClick(c)} 
                         className="text-emerald-400 hover:text-emerald-200 transition-colors"
                         title="Registrar venta"
                       >
                         <Plus size={18} />
                       </button>
                       <button 
-                        onClick={() => onEdit(c)} 
+                        onClick={() => handleEditClick(c)} 
                         className="text-indigo-400 hover:text-indigo-200 transition-colors"
                         title="Editar cliente"
                       >
                         <Edit2 size={18} />
                       </button>
                       <button 
-                        onClick={() => setConfirmDelete({ open: true, client: c })} 
+                        onClick={() => handleDeleteClick(c)} 
                         className="text-rose-400 hover:text-rose-200 transition-colors"
                         title="Eliminar cliente"
                       >
@@ -241,10 +382,7 @@ export default function ClientList({ clients = [], onEdit, onDelete }) {
                       </button>
                       <button
                         className="text-purple-500 hover:text-purple-300 transition-colors"
-                        onClick={() => {
-                          setClienteSeleccionado(c);
-                          setShowObservationModal(true);
-                        }}
+                        onClick={() => handleObservationClick(c)}
                         title="Enviar observación"
                       >
                         💬
@@ -262,10 +400,7 @@ export default function ClientList({ clients = [], onEdit, onDelete }) {
       {showQRModal && (
         <QRModal
           cliente={clienteSeleccionado}
-          onClose={() => {
-            setShowQRModal(false);
-            setClienteSeleccionado(null);
-          }}
+          onClose={handleQRClose}
         />
       )}
 
@@ -274,49 +409,24 @@ export default function ClientList({ clients = [], onEdit, onDelete }) {
         open={confirmDelete.open}
         title="Eliminar Cliente"
         message={`¿Estás seguro de eliminar a ${confirmDelete.client?.nombre}? Esta acción no se puede deshacer.`}
-        onConfirm={() => {
-          onDelete(confirmDelete.client._id);
-          setConfirmDelete({ open: false, client: null });
-        }}
-        onCancel={() => setConfirmDelete({ open: false, client: null })}
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
       />
 
       {/* Modal de nueva venta */}
       <SaleForm
         open={saleForm.open}
         cliente={saleForm.client}
-        onClose={() => setSaleForm({ open: false, client: null })}
-        onSave={async (venta) => {
-          try {
-            await agregarVenta(saleForm.client._id, venta);
-            await fetchClients();
-            setSaleForm({ open: false, client: null });
-          } catch (error) {
-            console.error("Error al guardar venta:", error);
-            alert("Error al registrar la venta");
-          }
-        }}
+        onClose={handleSaleClose}
+        onSave={handleSaleSave}
       />
 
       {/* Modal de observaciones */}
       {showObservationModal && (
         <ObservationModal
           cliente={clienteSeleccionado}
-          onClose={() => {
-            setShowObservationModal(false);
-            setClienteSeleccionado(null);
-          }}
-          onSave={async (data) => {
-            try {
-              await enviarMensaje(clienteSeleccionado._id, data);
-              await fetchClients();
-              setShowObservationModal(false);
-              setClienteSeleccionado(null);
-            } catch (error) {
-              console.error("Error al guardar observación:", error);
-              alert("Error al enviar el mensaje");
-            }
-          }}
+          onClose={handleObservationClose}
+          onSave={handleObservationSave}
         />
       )}
     </>

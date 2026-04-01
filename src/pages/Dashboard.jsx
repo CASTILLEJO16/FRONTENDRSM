@@ -1,17 +1,25 @@
-import React, { useContext, useState, useMemo } from "react";
-import { AppContext } from "../context/AppContext";
+import React, { useState, useMemo } from "react";
+import { useAuth } from "../context/AuthContext";
+import { useClients } from "../context/ClientsContext";
 import {
   User,
-  Home,
   DollarSign,
   Users,
   ShoppingCart,
   TrendingUp,
-  BarChart2
+  PackageOpen
 } from "lucide-react";
 
+const periodos = [
+  { value: "hoy", label: "Hoy" },
+  { value: "semana", label: "Esta semana" },
+  { value: "mes", label: "Este mes" },
+  { value: "todo", label: "Todo" }
+];
+
 export default function Dashboard() {
-  const { currentUser, clients } = useContext(AppContext);
+  const { currentUser } = useAuth();
+  const { clients } = useClients();
   const [periodo, setPeriodo] = useState("todo");
 
   // Filtrar clientes por periodo
@@ -65,11 +73,34 @@ export default function Dashboard() {
     };
   }, [clientesFiltrados]);
 
-  return (
-    <div className="pb-20">
+  // Calcular estadísticas adicionales memoizadas
+  const additionalStats = useMemo(() => {
+    const mejorVenta = Math.max(
+      ...clientesFiltrados.flatMap((c) =>
+        (c.ventas || []).map((v) => Number(v.monto || 0))
+      ),
+      0
+    );
 
-      {/* Header móvil */}
-      <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 text-white p-8 md:p-10 rounded-3xl shadow-soft-lg mb-8">
+    const totalTransacciones = clientesFiltrados.reduce(
+      (sum, c) => sum + (c.ventas?.length || 0),
+      0
+    );
+
+    return {
+      mejorVenta,
+      totalTransacciones,
+      sinCompra: stats.numClientes - stats.clientesCompraron
+    };
+  }, [clientesFiltrados, stats.numClientes, stats.clientesCompraron]);
+
+  const hayDatos = stats.numClientes > 0;
+
+  return (
+    <div className="max-w-7xl mx-auto space-y-8 animate-page-enter pb-20 px-4 sm:px-6">
+
+      {/* Header */}
+      <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 text-white p-8 md:p-10 rounded-3xl shadow-soft-lg">
         <div className="flex items-center gap-6">
           <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
             <User size={36} />
@@ -82,61 +113,78 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Selector periodo */}
-        <div className="mt-6 bg-white/10 p-3 rounded-2xl backdrop-blur-sm">
-          <select
-            value={periodo}
-            onChange={(e) => setPeriodo(e.target.value)}
-            className="w-full bg-white/20 px-4 py-3 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/30"
-          >
-            <option value="hoy" className="text-slate-900">Hoy</option>
-            <option value="semana" className="text-slate-900">Esta semana</option>
-            <option value="mes" className="text-slate-900">Este mes</option>
-            <option value="todo" className="text-slate-900">Todo el tiempo</option>
-          </select>
+        {/* Selector de período con botones segmentados */}
+        <div className="mt-6 bg-white/10 p-1.5 rounded-xl backdrop-blur-sm">
+          <div className="flex gap-1">
+            {periodos.map((p) => (
+              <button
+                key={p.value}
+                onClick={() => setPeriodo(p.value)}
+                className={`flex-1 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200
+                  ${periodo === p.value 
+                    ? "bg-white/20 text-white shadow-sm" 
+                    : "text-white/70 hover:text-white hover:bg-white/10"
+                  }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Tarjetas estadísticas (optimizado móvil) */}
-      <div className="px-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 mb-8">
+      {/* Estado vacío */}
+      {!hayDatos && (
+        <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-12 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-slate-700/50 flex items-center justify-center mx-auto mb-4">
+            <PackageOpen className="text-slate-400" size={32} />
+          </div>
+          <h3 className="text-lg font-semibold text-slate-200 mb-2">No hay datos</h3>
+          <p className="text-slate-400 text-sm">
+            No se encontraron clientes para el período seleccionado.
+          </p>
+        </div>
+      )}
 
-        {/* CARD */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-soft hover:shadow-soft-lg transition-all duration-300">
+      {/* Tarjetas estadísticas */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+
+        <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-soft hover:shadow-soft-lg hover:scale-[1.02] hover:-translate-y-1 active:scale-[0.98] transition-all duration-300">
           <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center mb-4">
             <DollarSign className="text-emerald-400" size={20} />
           </div>
           <p className="text-slate-400 text-sm font-medium mb-1">Total ventas</p>
-          <p className="text-2xl font-bold text-slate-100">
+          <p className="text-2xl font-bold text-slate-100 tabular-nums">
             ${stats.totalVentas.toLocaleString()}
           </p>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-soft hover:shadow-soft-lg transition-all duration-300">
+        <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-soft hover:shadow-soft-lg hover:scale-[1.02] hover:-translate-y-1 active:scale-[0.98] transition-all duration-300">
           <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center mb-4">
             <Users className="text-indigo-400" size={20} />
           </div>
           <p className="text-slate-400 text-sm font-medium mb-1">Clientes</p>
-          <p className="text-2xl font-bold text-slate-100">
+          <p className="text-2xl font-bold text-slate-100 tabular-nums">
             {stats.numClientes}
           </p>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-soft hover:shadow-soft-lg transition-all duration-300">
+        <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-soft hover:shadow-soft-lg hover:scale-[1.02] hover:-translate-y-1 active:scale-[0.98] transition-all duration-300">
           <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center mb-4">
             <ShoppingCart className="text-purple-400" size={20} />
           </div>
           <p className="text-slate-400 text-sm font-medium mb-1">Compraron</p>
-          <p className="text-2xl font-bold text-slate-100">
+          <p className="text-2xl font-bold text-slate-100 tabular-nums">
             {stats.clientesCompraron}
           </p>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-soft hover:shadow-soft-lg transition-all duration-300">
+        <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-soft hover:shadow-soft-lg hover:scale-[1.02] hover:-translate-y-1 active:scale-[0.98] transition-all duration-300">
           <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center mb-4">
             <TrendingUp className="text-amber-400" size={20} />
           </div>
           <p className="text-slate-400 text-sm font-medium mb-1">Promedio</p>
-          <p className="text-2xl font-bold text-slate-100">
+          <p className="text-2xl font-bold text-slate-100 tabular-nums">
             ${stats.promedioPorVenta.toFixed(0)}
           </p>
         </div>
@@ -144,44 +192,33 @@ export default function Dashboard() {
       </div>
 
       {/* Resumen */}
-      <div className="px-4">
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-soft">
-          <h3 className="text-xl font-bold text-slate-100 mb-6">Resumen</h3>
+      <div className="bg-slate-800 border border-slate-700 rounded-2xl p-8 shadow-soft">
+        <h3 className="text-xl font-bold text-slate-100 mb-6">Resumen</h3>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div className="bg-slate-800 p-6 rounded-xl">
-              <p className="text-slate-400 text-sm font-medium mb-2">Sin compra</p>
-              <p className="text-3xl font-bold text-slate-100">
-                {stats.numClientes - stats.clientesCompraron}
-              </p>
-            </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="bg-slate-700/50 p-6 rounded-xl border border-slate-600/50">
+            <p className="text-slate-400 text-sm font-medium mb-2">Sin compra</p>
+            <p className="text-3xl font-bold text-slate-100 tabular-nums">
+              {additionalStats.sinCompra}
+            </p>
+          </div>
 
-            <div className="bg-slate-800 p-6 rounded-xl">
-              <p className="text-slate-400 text-sm font-medium mb-2">Mejor venta</p>
-              <p className="text-3xl font-bold text-slate-100">
-                $
-                {Math.max(
-                  ...clientesFiltrados.flatMap((c) =>
-                    (c.ventas || []).map((v) => Number(v.monto || 0))
-                  ),
-                  0
-                ).toLocaleString()}
-              </p>
-            </div>
+          <div className="bg-slate-700/50 p-6 rounded-xl border border-slate-600/50">
+            <p className="text-slate-400 text-sm font-medium mb-2">Mejor venta</p>
+            <p className="text-3xl font-bold text-slate-100 tabular-nums">
+              ${additionalStats.mejorVenta.toLocaleString()}
+            </p>
+          </div>
 
-            <div className="bg-slate-800 p-6 rounded-xl">
-              <p className="text-slate-400 text-sm font-medium mb-2">Transacciones</p>
-              <p className="text-3xl font-bold text-slate-100">
-                {clientesFiltrados.reduce(
-                  (sum, c) => sum + (c.ventas?.length || 0),
-                  0
-                )}
-              </p>
-            </div>
+          <div className="bg-slate-700/50 p-6 rounded-xl border border-slate-600/50">
+            <p className="text-slate-400 text-sm font-medium mb-2">Transacciones</p>
+            <p className="text-3xl font-bold text-slate-100 tabular-nums">
+              {additionalStats.totalTransacciones}
+            </p>
           </div>
         </div>
       </div>
 
-      </div>
+    </div>
   );
 }

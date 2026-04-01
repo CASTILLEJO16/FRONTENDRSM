@@ -1,9 +1,9 @@
-import React, { useContext } from "react";
-import { AppContext } from "../context/AppContext";
+import React from "react";
+import { useAuth } from "../context/AuthContext";
 import { LogOut } from "lucide-react";
 
 export default function Header() {
-  const { logout } = useContext(AppContext);
+  const { logout } = useAuth();
 
   return (
     <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow">

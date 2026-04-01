@@ -1,8 +1,8 @@
-import React, { useContext, useState } from "react";
-import { AppContext } from "../context/AppContext";
+import React, { useState } from "react";
+import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
-  const { login } = useContext(AppContext);
+  const { login } = useAuth();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");

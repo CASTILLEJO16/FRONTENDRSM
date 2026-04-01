@@ -1,10 +1,12 @@
-import React, { useContext, useState } from "react";
-import { AppContext } from "../context/AppContext";
+import React, { useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import { useNotifications } from "../context/NotificationsContext";
 import { LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function Settings() {
-  const { logout, showAlert, currentUser } = useContext(AppContext);
+  const { logout, currentUser } = useAuth();
+  const { showSuccessAlert } = useNotifications();
   const [showConfirm, setShowConfirm] = useState(false);
   const role = currentUser?.role || "vendedor";
 
@@ -14,7 +16,7 @@ export default function Settings() {
 
   const confirmLogout = () => {
     logout();
-    showAlert("success", "Sesión cerrada correctamente");
+    // El AuthContext ya muestra la notificación automáticamente
   };
 
   return (

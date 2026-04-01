@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useContext, useEffect } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   BarChart,
   Bar,
@@ -11,7 +11,7 @@ import {
   ReferenceLine
 } from "recharts";
 import { Target, TrendingUp } from "lucide-react";
-import { AppContext } from "../context/AppContext";
+import { useNotifications } from "../context/NotificationsContext";
 
 const parseVentaDate = (fecha) => {
   if (!fecha) return null;
@@ -72,7 +72,7 @@ const toFiniteNumber = (value) => {
 const getVentaMonto = (v) => toFiniteNumber(v?.monto ?? v?.total ?? v?.importe ?? 0);
 
 export default function GoalsChart({ clients, currentUser }) {
-  const { showAlert } = useContext(AppContext);
+  const { showSuccessAlert, showErrorAlert } = useNotifications();
   const [periodo, setPeriodo] = useState("mes");
   const tipoMeta = "ventas";
 
@@ -128,16 +128,12 @@ export default function GoalsChart({ clients, currentUser }) {
   const guardarMetas = () => {
     setMetasActivas(metasConfiguradas);
     localStorage.setItem('metasActivas', JSON.stringify(metasConfiguradas));
-    showAlert('success', '¡Metas guardadas exitosamente!', {
-      duration: 3000
-    });
+    showSuccessAlert('Metas guardadas exitosamente');
   };
 
   const descartarCambios = () => {
     setMetasConfiguradas(metasActivas);
-    showAlert('info', 'Cambios descartados', {
-      duration: 3000
-    });
+    showSuccessAlert('Cambios descartados');
   };
 
   // Metas activas (las que se usan en el gráfico)
@@ -300,25 +296,29 @@ export default function GoalsChart({ clients, currentUser }) {
         datos = [];
     }
 
-    return datos;
+    return datos.map(d => ({
+      ...d,
+      real: Number.isFinite(d.real) ? d.real : 0,
+      meta: Number.isFinite(d.meta) ? d.meta : 0
+    }));
   }, [safeClients, metasActivas, periodo, tipoMeta]);
 
   // Calcular estadísticas
   const stats = useMemo(() => {
     const realTotal = getRealData.reduce((sum, d) => sum + d.real, 0);
     const metaTotal = getRealData.reduce((sum, d) => sum + d.meta, 0);
-    const progreso = metaTotal > 0 ? (realTotal / metaTotal) * 100 : 0;
+    const progreso = metaTotal > 0 ? ((realTotal / metaTotal) * 100) : 0;
     
     // Proyección basada en tendencia actual
     const diasTranscurridos = getRealData.length;
-    const proyeccion = diasTranscurridos > 0 ? (realTotal / diasTranscurridos) * 
-      (periodo === "dia" ? 24 : periodo === "semana" ? 7 : periodo === "mes" ? 30 : 90) : 0;
+    const proyeccion = diasTranscurridos > 0 ? ((realTotal / diasTranscurridos) * 
+      (periodo === "dia" ? 24 : periodo === "semana" ? 7 : periodo === "mes" ? 30 : 90)) : 0;
     
     return {
-      realTotal,
-      metaTotal,
-      progreso,
-      proyeccion,
+      realTotal: Number.isFinite(realTotal) ? realTotal : 0,
+      metaTotal: Number.isFinite(metaTotal) ? metaTotal : 0,
+      progreso: Number.isFinite(progreso) ? progreso : 0,
+      proyeccion: Number.isFinite(proyeccion) ? proyeccion : 0,
       diasTranscurridos
     };
   }, [getRealData, periodo]);

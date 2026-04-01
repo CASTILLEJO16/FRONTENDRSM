@@ -1,6 +1,8 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { AppContext } from "../context/AppContext";
+import { useAuth } from "../context/AuthContext";
+import { useClients } from "../context/ClientsContext";
+import { useNotifications } from "../context/NotificationsContext";
 import ObservationModal from "../components/ObservationModal";
 import { Loader2, AlertCircle } from "lucide-react";
 import axios from "axios";
@@ -8,7 +10,9 @@ import axios from "axios";
 export default function ScanPage() {
   const { clientId } = useParams();
   const navigate = useNavigate();
-  const { token, enviarMensaje, showAlert } = useContext(AppContext);
+  const { token } = useAuth();
+  const { enviarMensaje } = useClients();
+  const { showErrorAlert, showSuccessAlert } = useNotifications();
   
   const [cliente, setCliente] = useState(null);
   const [loading, setLoading] = useState(true);

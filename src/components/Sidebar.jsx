@@ -1,11 +1,11 @@
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { AppContext } from "../context/AppContext";
+import { useAuth } from "../context/AuthContext";
 import { Menu, X, Home, Users, BarChart2, Settings, LogOut, History, FileText, Bell } from "lucide-react";
 
 export default function Sidebar() {
   const [open, setOpen] = useState(false);
-  const { logout, currentUser } = useContext(AppContext);
+  const { logout, currentUser } = useAuth();
   const role = currentUser?.role || "vendedor";
 
   const links = [

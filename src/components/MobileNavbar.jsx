@@ -1,12 +1,14 @@
-import React, { useContext, useState } from "react";
+import React, { useState } from "react";
 import { Home, Users, BarChart2, Settings, History, FileText, Bell, LogOut } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import { AppContext } from "../context/AppContext";
+import { useAuth } from "../context/AuthContext";
+import { useNotifications } from "../context/NotificationsContext";
 import ConfirmDialog from "./ConfirmDialog";
 
 export default function MobileNavbar() {
   const { pathname } = useLocation();
-  const { currentUser, logout, showAlert } = useContext(AppContext);
+  const { currentUser, logout } = useAuth();
+  const { showErrorAlert } = useNotifications();
   const role = currentUser?.role || "vendedor";
   const [confirmLogout, setConfirmLogout] = useState(false);
 
@@ -73,7 +75,6 @@ export default function MobileNavbar() {
         onConfirm={() => {
           setConfirmLogout(false);
           logout();
-          showAlert("success", "Sesión cerrada");
         }}
         onCancel={() => setConfirmLogout(false)}
       />

@@ -1,15 +1,19 @@
-import React, { useContext, useEffect, useState } from "react";
-import { AppContext } from "../context/AppContext";
+import React, { useEffect, useState } from "react";
+import { useClients } from "../context/ClientsContext";
+import { useNotifications } from "../context/NotificationsContext";
 import ClientList from "../components/ClientList";
 import ClientForm from "../components/ClientForm";
 
 export default function Clients() {
-  const { clients, fetchClients, createClient, updateClient, deleteClient, showAlert } = useContext(AppContext);
+  const { clients, fetchClients, createClient, updateClient, deleteClient } = useClients();
+  const { showSuccessAlert, showErrorAlert } = useNotifications();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(null);
 
-  useEffect(() => { fetchClients(); }, []);
+  useEffect(() => { 
+    fetchClients(); 
+  }, [fetchClients]);
 
   const filtered = (clients || []).filter(c =>
     [c.nombre, c.empresa, c.email, c.vendedor].join(" ").toLowerCase().includes(search.toLowerCase())
@@ -32,18 +36,18 @@ export default function Clients() {
       await updateClient(clientId, updatedClient);
       
       // Mostrar mensaje de éxito
-      showAlert("success", "Venta registrada exitosamente");
+      showSuccessAlert("Venta registrada exitosamente");
       
       // Recargar clientes para actualizar la gráfica
       await fetchClients();
     } catch (error) {
       console.error("Error al registrar venta:", error);
-      showAlert("error", "Error al registrar la venta");
+      showErrorAlert("Error al registrar la venta");
     }
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
+    <div className="max-w-7xl mx-auto space-y-8 animate-page-enter">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-100">Clientes</h1>

@@ -1,13 +1,17 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { Plus, Calendar, Bell, Clock, CheckCircle, CalendarDays } from "lucide-react";
-import { AppContext } from "../context/AppContext";
+import { useClients } from "../context/ClientsContext";
+import { useAuth } from "../context/AuthContext";
+import { useNotifications } from "../context/NotificationsContext";
 import ReminderForm from "../components/ReminderForm";
 import ReminderCalendar from "../components/ReminderCalendar";
 import ReminderList from "../components/ReminderList";
 import { notificationService } from "../components/NotificationService";
 
 export default function Activity() {
-  const { clients, showAlert, user } = useContext(AppContext);
+  const { clients } = useClients();
+  const { currentUser } = useAuth();
+  const { showSuccessAlert, showErrorAlert } = useNotifications();
   const [reminders, setReminders] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -15,7 +19,7 @@ export default function Activity() {
 
   // Generar clave única para el usuario
   const getUserKey = () => {
-    return user?.email ? `reminders_${user.email}` : 'reminders_guest';
+    return currentUser?.email ? `reminders_${currentUser.email}` : 'reminders_guest';
   };
 
   // Cargar recordatorios al montar y cuando cambia el usuario
@@ -33,7 +37,7 @@ export default function Activity() {
     return () => {
       notificationService.stopChecking();
     };
-  }, [user]);
+  }, [currentUser]);
 
   // Crear nuevo recordatorio
   const handleReminderCreated = (reminder) => {
@@ -64,7 +68,7 @@ export default function Activity() {
       const userKey = getUserKey();
       const updated = notificationService.deleteReminder(reminderId, userKey);
       setReminders(updated);
-      showAlert('success', 'Recordatorio eliminado correctamente');
+      showSuccessAlert('Recordatorio eliminado correctamente');
     }
   };
 
@@ -73,7 +77,7 @@ export default function Activity() {
     const userKey = getUserKey();
     const completed = notificationService.completeReminder(reminderId, userKey);
     setReminders(prev => prev.map(r => r.id === reminderId ? completed : r));
-    showAlert('success', '¡Recordatorio completado! 🎉');
+    showSuccessAlert('¡Recordatorio completado! 🎉');
   };
 
   // Estadísticas

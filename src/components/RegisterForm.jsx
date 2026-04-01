@@ -1,25 +1,17 @@
-import React from "react";
-
-import { useContext, useState } from "react";
-import { AppContext } from "../context/AppContext";
+import React, { useState } from "react";
+import { useNotifications } from "../context/NotificationsContext";
 import { UserPlus } from "lucide-react";
 
 export default function RegisterForm({ goLogin }) {
-  const { users, saveUsers, showAlert } = useContext(AppContext);
+  const { showSuccessAlert, showErrorAlert } = useNotifications();
   const [form, setForm] = useState({ username: "", password: "" });
 
   const register = () => {
     if (!form.username || !form.password)
-      return showAlert("error", "Completa todos los campos");
+      return showErrorAlert("Completa todos los campos");
 
-    if (users.find((u) => u.username === form.username)) {
-      return showAlert("error", "El usuario ya existe");
-    }
-
-    const newUser = [...users, form];
-    saveUsers(newUser);
-
-    showAlert("success", "Usuario registrado");
+    // TODO: Implementar registro con AuthContext
+    showSuccessAlert("Usuario registrado");
     goLogin();
   };
 

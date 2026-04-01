@@ -1,8 +1,12 @@
-import React, { useState, useContext } from "react";
-import { AppContext } from "../context/AppContext";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { useNotifications } from "../context/NotificationsContext";
 
 export default function LoginPage() {
-  const { login, register, showAlert } = useContext(AppContext);
+  const navigate = useNavigate();
+  const { login, register } = useAuth();
+  const { showErrorAlert, showSuccessAlert } = useNotifications();
   const [mode, setMode] = useState("login");
   const [loginData, setLoginData] = useState({ username: "", password: "" });
   const [regData, setRegData] = useState({ username: "", password: "", nombre: "" });
@@ -10,10 +14,13 @@ export default function LoginPage() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      await login(loginData.username, loginData.password);
-      // El showAlert de éxito ya está en AppContext
+      const result = await login(loginData.username, loginData.password);
+      if (result.success) {
+        showSuccessAlert("Inicio de sesión exitoso");
+        navigate("/dashboard");
+      }
     } catch (err) {
-      showAlert("error", err.response?.data?.msg || "❌ Error al iniciar sesión");
+      showErrorAlert(err.response?.data?.msg || "Error al iniciar sesión");
     }
   };
 
@@ -22,25 +29,27 @@ export default function LoginPage() {
     
     // Validaciones
     if (!regData.nombre.trim()) {
-      showAlert("error", "⚠️ El nombre es obligatorio");
+      showErrorAlert("El nombre es obligatorio");
       return;
     }
     if (!regData.username.trim()) {
-      showAlert("error", "⚠️ El usuario es obligatorio");
+      showErrorAlert("El usuario es obligatorio");
       return;
     }
     if (regData.password.length < 6) {
-      showAlert("error", "⚠️ La contraseña debe tener mínimo 6 caracteres");
+      showErrorAlert("La contraseña debe tener mínimo 6 caracteres");
       return;
     }
 
     try {
-      await register(regData.username, regData.password, regData.nombre);
-      showAlert("success", "✅ Cuenta creada exitosamente. Ahora inicia sesión");
-      setMode("login");
-      setRegData({ username: "", password: "", nombre: "" });
+      const result = await register(regData.username, regData.password, regData.nombre);
+      if (result.success) {
+        showSuccessAlert("Cuenta creada exitosamente. Ahora inicia sesión");
+        setMode("login");
+        setRegData({ username: "", password: "", nombre: "" });
+      }
     } catch (err) {
-      showAlert("error", err.response?.data?.msg || "❌ Error al crear cuenta");
+      showErrorAlert(err.response?.data?.msg || "Error al crear cuenta");
     }
   };
 

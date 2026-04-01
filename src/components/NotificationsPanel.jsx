@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useMemo, useContext } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { Bell, Clock, Calendar, MessageCircle, Phone, CheckCircle, AlertCircle, X, Settings } from "lucide-react";
-import { AppContext } from "../context/AppContext";
+import { useNotifications } from "../context/NotificationsContext";
 
 export default function NotificationsPanel({ clients }) {
-  const { showAlert } = useContext(AppContext);
+  const { showSuccessAlert } = useNotifications();
   const [reminders, setReminders] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -187,20 +187,12 @@ export default function NotificationsPanel({ clients }) {
         ));
         
         // Mostrar alerta
-        showAlert('info', recordatorio.mensaje, {
-          duration: 5000,
-          action: {
-            label: 'Ver cliente',
-            onClick: () => {
-              window.location.href = `/clients`;
-            }
-          }
-        });
+        showSuccessAlert(recordatorio.mensaje);
       });
     }, 60000); // Verificar cada minuto
 
     return () => clearInterval(intervalo);
-  }, [generarRecordatorios, showAlert]);
+  }, [generarRecordatorios, showSuccessAlert]);
 
   useEffect(() => {
     if (!showNotifications) return;
