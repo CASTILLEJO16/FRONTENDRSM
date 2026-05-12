@@ -1,7 +1,11 @@
-const CACHE_NAME = 'salesrsm-v2';
+const CACHE_NAME = 'salesrsm-v3';
 const urlsToCache = [
   '/',
-  '/index.html',
+  '/index.html'
+];
+
+// Recursos opcionales - se intentan cachear pero no bloquean la instalación
+const optionalUrls = [
   '/manifest.json',
   '/icon-192x192.png',
   '/icon-512x512.png',
@@ -12,11 +16,23 @@ const urlsToCache = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log(' Cacheando recursos...');
-        return cache.addAll(urlsToCache);
+      .then(async (cache) => {
+        console.log('Cacheando recursos esenciales...');
+        // Cachear los esenciales
+        await cache.addAll(urlsToCache);
+        // Intentar cachear los opcionales individualmente
+        for (const url of optionalUrls) {
+          try {
+            await cache.add(url);
+          } catch (e) {
+            console.warn(`No se pudo cachear ${url}:`, e.message);
+          }
+        }
       })
-      .catch((err) => console.error(' Error cacheando:', err))
+      .catch((err) => {
+        console.error('Error cacheando:', err);
+        return Promise.resolve();
+      })
   );
   self.skipWaiting();
 });
@@ -55,22 +71,36 @@ self.addEventListener('fetch', (event) => {
         // No cache - ir a la red
         return fetch(event.request)
           .then((networkResponse) => {
+            // Verificar que la respuesta sea válida
+            if (!networkResponse || networkResponse.status === 0) {
+              throw new Error('Respuesta de red inválida');
+            }
+            
             // No cachear si no es GET o si es una navegación
             if (event.request.method !== 'GET') {
               return networkResponse;
             }
+            
             // Opcional: agregar a cache dinámicamente
             const responseToCache = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseToCache);
+              cache.put(event.request, responseToCache).catch(() => {
+                // Ignorar errores de cacheo dinámico
+              });
             });
             return networkResponse;
           })
-          .catch(() => {
+          .catch((error) => {
+            console.error('Error en fetch:', error);
             // Si falla la red y es una navegación, devolver index.html (SPA)
             if (event.request.mode === 'navigate') {
               return caches.match('/index.html');
             }
+            // Para otros errores, devolver respuesta vacía o error
+            return new Response('Error de conexión', { 
+              status: 503, 
+              statusText: 'Service Unavailable' 
+            });
           });
       })
   );

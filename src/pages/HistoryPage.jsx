@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useClients } from '../context/ClientsContext';
-import { X } from 'lucide-react';
+import { X, FileText } from 'lucide-react';
+import { generateSaleReceipt } from '../utils/reportGenerator';
 
 // Modal para ver imagen en tamaño completo
 function ImageModal({ imagen, onClose }) {
@@ -125,6 +126,16 @@ function Historial({ clients }) {
                                 <span className="text-sm">💰</span>
                                 ${h.monto.toLocaleString()}
                               </span>
+                            )}
+                            {h.tipo === 'compra' && (
+                              <button
+                                onClick={() => generateSaleReceipt(c, h)}
+                                className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-red-500/10 text-red-400 font-semibold border border-red-500/20 hover:bg-red-500/20 transition-colors"
+                                title="Descargar Recibo"
+                              >
+                                <FileText size={14} />
+                                Recibo
+                              </button>
                             )}
                           </div>
 

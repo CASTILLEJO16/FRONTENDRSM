@@ -8,9 +8,10 @@ import SaleForm from "./SaleForm";
 import ObservationModal from "./ObservationModal";
 import QRModal from "./QRModal";
 
-export default function ClientList({ onEdit, onDelete }) {
-  const { clients, isLoading } = useClients();
+export default function ClientList({ onEdit, onDelete, onAddSale }) {
+  const { clients, isLoading, enviarMensaje } = useClients();
   const { handleError } = useErrorHandler();
+  const { showSuccess, showError } = useNotifications();
   
   const [confirmDelete, setConfirmDelete] = useState({ open: false, client: null });
   const [saleForm, setSaleForm] = useState({ open: false, client: null });
@@ -60,9 +61,10 @@ export default function ClientList({ onEdit, onDelete }) {
   }, []);
 
   const handleSaleSave = useCallback(async (venta) => {
-    const { agregarVenta } = useClients();
     try {
-      await agregarVenta(saleForm.client._id, venta);
+      if (onAddSale) {
+        await onAddSale(saleForm.client._id, venta);
+      }
       setSaleForm({ open: false, client: null });
     } catch (error) {
       handleError(error, {
@@ -71,7 +73,7 @@ export default function ClientList({ onEdit, onDelete }) {
         showToast: true
       });
     }
-  }, [saleForm.client, handleError]);
+  }, [saleForm.client, handleError, onAddSale]);
 
   const handleObservationClose = useCallback(() => {
     setShowObservationModal(false);
@@ -79,19 +81,20 @@ export default function ClientList({ onEdit, onDelete }) {
   }, []);
 
   const handleObservationSave = useCallback(async (data) => {
-    const { enviarMensaje } = useClients();
     try {
       await enviarMensaje(clienteSeleccionado._id, data);
+      showSuccess("Mensaje enviado exitosamente");
       setShowObservationModal(false);
       setClienteSeleccionado(null);
     } catch (error) {
+      showError("Error al enviar el mensaje");
       handleError(error, {
         context: 'handleObservationSave',
         userMessage: 'Error al enviar el mensaje',
         showToast: true
       });
     }
-  }, [clienteSeleccionado, handleError]);
+  }, [clienteSeleccionado, handleError, enviarMensaje, showSuccess, showError]);
 
   // Mostrar skeletons durante carga
   if (isLoading) {

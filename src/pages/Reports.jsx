@@ -4,6 +4,8 @@ import { useAuth } from "../context/AuthContext";
 import { useNotifications } from "../context/NotificationsContext";
 import PieDistributionChart from "../components/PieDistributionChart";
 import TrendChart from "../components/TrendChart";
+import { FileText } from "lucide-react";
+import { generateSalesReport } from "../utils/reportGenerator";
 
 export default function Reports() {
   const { clients } = useClients();
@@ -50,11 +52,20 @@ export default function Reports() {
 
   return (
     <div className="animate-page-enter pb-20">
-      <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 text-white p-6 md:p-8 rounded-2xl shadow-soft-lg mb-6">
-        <h1 className="text-2xl font-bold">Reportes Detallados</h1>
-        <p className="text-white/80 mt-2">
-          Análisis completo de métricas{role === "admin" || role === "gerente" ? ` • ${selectedLabel}` : ""}
-        </p>
+      <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 text-white p-6 md:p-8 rounded-2xl shadow-soft-lg mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Reportes Detallados</h1>
+          <p className="text-white/80 mt-2">
+            Análisis completo de métricas{role === "admin" || role === "gerente" ? ` • ${selectedLabel}` : ""}
+          </p>
+        </div>
+        <button
+          onClick={() => generateSalesReport(viewClients, `Reporte de Ventas - ${selectedLabel}`)}
+          className="flex items-center gap-2 bg-white/20 hover:bg-white/30 backdrop-blur-md px-5 py-3 rounded-xl font-semibold transition-all border border-white/30"
+        >
+          <FileText size={20} />
+          Exportar PDF
+        </button>
       </div>
 
       <div className="space-y-6 px-4">

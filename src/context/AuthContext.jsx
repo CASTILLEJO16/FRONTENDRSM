@@ -30,7 +30,7 @@ export function AuthProvider({ children }) {
   // Configurar axios instance para auth
   const authAPI = axios.create({
     baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000/api',
-    timeout: 10000,
+    timeout: 60000,
   });
 
   // Interceptor para incluir token en requests (usa ref para valor actual)

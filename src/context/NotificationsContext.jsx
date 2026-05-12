@@ -1,9 +1,9 @@
-import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
+import React from 'react';
 
-const NotificationsContext = createContext();
+const NotificationsContext = React.createContext();
 
 export function useNotifications() {
-  const context = useContext(NotificationsContext);
+  const context = React.useContext(NotificationsContext);
   if (!context) {
     throw new Error('useNotifications must be used within a NotificationsProvider');
   }
@@ -11,23 +11,23 @@ export function useNotifications() {
 }
 
 export function NotificationsProvider({ children }) {
-  const [toasts, setToasts] = useState([]);
-  const [alerts, setAlerts] = useState([]);
-  const toastIdRef = useRef(0);
-  const alertIdRef = useRef(0);
+  const [toasts, setToasts] = React.useState([]);
+  const [alerts, setAlerts] = React.useState([]);
+  const toastIdRef = React.useRef(0);
+  const alertIdRef = React.useRef(0);
 
   // Generar ID único para toast
-  const generateToastId = useCallback(() => {
+  const generateToastId = React.useCallback(() => {
     return `toast-${++toastIdRef.current}-${Date.now()}`;
   }, []);
 
   // Generar ID único para alert
-  const generateAlertId = useCallback(() => {
+  const generateAlertId = React.useCallback(() => {
     return `alert-${++alertIdRef.current}-${Date.now()}`;
   }, []);
 
   // Mostrar toast (notificación temporal)
-  const showToast = useCallback((message, options = {}) => {
+  const showToast = React.useCallback((message, options = {}) => {
     const {
       type = 'info',
       duration = 3000,
@@ -61,17 +61,17 @@ export function NotificationsProvider({ children }) {
   }, [generateToastId]);
 
   // Remover toast específico
-  const removeToast = useCallback((id) => {
+  const removeToast = React.useCallback((id) => {
     setToasts(prev => prev.filter(toast => toast.id !== id));
   }, []);
 
   // Limpiar todos los toasts
-  const clearToasts = useCallback(() => {
+  const clearToasts = React.useCallback(() => {
     setToasts([]);
   }, []);
 
   // Mostrar alerta (modal o banner)
-  const showAlert = useCallback((message, options = {}) => {
+  const showAlert = React.useCallback((message, options = {}) => {
     const {
       type = 'info',
       title = null,
@@ -107,51 +107,51 @@ export function NotificationsProvider({ children }) {
   }, [generateAlertId]);
 
   // Remover alerta específica
-  const removeAlert = useCallback((id) => {
+  const removeAlert = React.useCallback((id) => {
     setAlerts(prev => prev.filter(alert => alert.id !== id));
   }, []);
 
   // Limpiar todas las alertas
-  const clearAlerts = useCallback(() => {
+  const clearAlerts = React.useCallback(() => {
     setAlerts([]);
   }, []);
 
   // Métodos de conveniencia para diferentes tipos
-  const showSuccess = useCallback((message, options = {}) => {
+  const showSuccess = React.useCallback((message, options = {}) => {
     return showToast(message, { ...options, type: 'success' });
   }, [showToast]);
 
-  const showError = useCallback((message, options = {}) => {
+  const showError = React.useCallback((message, options = {}) => {
     return showToast(message, { ...options, type: 'error', duration: 5000 });
   }, [showToast]);
 
-  const showWarning = useCallback((message, options = {}) => {
+  const showWarning = React.useCallback((message, options = {}) => {
     return showToast(message, { ...options, type: 'warning', duration: 4000 });
   }, [showToast]);
 
-  const showInfo = useCallback((message, options = {}) => {
+  const showInfo = React.useCallback((message, options = {}) => {
     return showToast(message, { ...options, type: 'info' });
   }, [showToast]);
 
   // Alertas de conveniencia
-  const showSuccessAlert = useCallback((message, options = {}) => {
+  const showSuccessAlert = React.useCallback((message, options = {}) => {
     return showAlert(message, { ...options, type: 'success' });
   }, [showAlert]);
 
-  const showErrorAlert = useCallback((message, options = {}) => {
+  const showErrorAlert = React.useCallback((message, options = {}) => {
     return showAlert(message, { ...options, type: 'error', persistent: true });
   }, [showAlert]);
 
-  const showWarningAlert = useCallback((message, options = {}) => {
+  const showWarningAlert = React.useCallback((message, options = {}) => {
     return showAlert(message, { ...options, type: 'warning' });
   }, [showAlert]);
 
-  const showInfoAlert = useCallback((message, options = {}) => {
+  const showInfoAlert = React.useCallback((message, options = {}) => {
     return showAlert(message, { ...options, type: 'info' });
   }, [showAlert]);
 
   // Confirmación de usuario
-  const showConfirm = useCallback((message, options = {}) => {
+  const showConfirm = React.useCallback((message, options = {}) => {
     const {
       title = 'Confirmar acción',
       confirmText = 'Confirmar',
@@ -190,7 +190,7 @@ export function NotificationsProvider({ children }) {
   }, [showAlert, removeAlert]);
 
   // Notificación de progreso
-  const showProgress = useCallback((message, options = {}) => {
+  const showProgress = React.useCallback((message, options = {}) => {
     const {
       progress = 0,
       indeterminate = false,
@@ -211,14 +211,14 @@ export function NotificationsProvider({ children }) {
   }, [showToast]);
 
   // Actualizar progreso de una notificación existente
-  const updateProgress = useCallback((id, progress) => {
+  const updateProgress = React.useCallback((id, progress) => {
     setToasts(prev => prev.map(toast => 
       toast.id === id ? { ...toast, progress } : toast
     ));
   }, []);
 
   // Notificación de tarea completada
-  const showTaskComplete = useCallback((taskName, result = 'success') => {
+  const showTaskComplete = React.useCallback((taskName, result = 'success') => {
     const messages = {
       success: `${taskName} completado exitosamente`,
       error: `Error en ${taskName}`,
@@ -238,7 +238,7 @@ export function NotificationsProvider({ children }) {
   }, [showToast]);
 
   // Notificación de conexión
-  const showConnectionStatus = useCallback((isOnline) => {
+  const showConnectionStatus = React.useCallback((isOnline) => {
     if (isOnline) {
       return showToast('Conexión restablecida', {
         type: 'success',
@@ -254,12 +254,12 @@ export function NotificationsProvider({ children }) {
   }, [showToast]);
 
   // Obtener toasts por posición
-  const getToastsByPosition = useCallback((position) => {
+  const getToastsByPosition = React.useCallback((position) => {
     return toasts.filter(toast => toast.position === position);
   }, [toasts]);
 
   // Estadísticas de notificaciones
-  const getNotificationStats = useCallback(() => {
+  const getNotificationStats = React.useCallback(() => {
     const now = Date.now();
     const lastHour = now - (60 * 60 * 1000);
     const lastDay = now - (24 * 60 * 60 * 1000);
