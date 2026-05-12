@@ -2,6 +2,7 @@ import React, { useState, useCallback } from "react";
 import { Edit2, Trash2, Plus, QrCode } from "lucide-react";
 import { useClients } from "../context/ClientsContext";
 import { useErrorHandler } from "../hooks/useErrorHandler";
+import { useNotifications } from "../context/NotificationsContext";
 import { SkeletonCard } from "./ui/Skeleton";
 import ConfirmDialog from "./ConfirmDialog";
 import SaleForm from "./SaleForm";
