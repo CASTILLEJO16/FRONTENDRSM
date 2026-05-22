@@ -6,8 +6,9 @@ import autoTable from 'jspdf-autotable';
  * Genera un reporte general de ventas en PDF
  * @param {Array} clients - Lista de clientes con sus ventas
  * @param {String} title - Título del reporte
+ * @param {Object} filters - Filtros aplicados
  */
-export const generateSalesReport = (clients, title = "Reporte General de Ventas") => {
+export const generateSalesReport = (clients, title = "Reporte General de Ventas", filters = {}) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
 
@@ -15,26 +16,76 @@ export const generateSalesReport = (clients, title = "Reporte General de Ventas"
   doc.setFontSize(20);
   doc.setTextColor(30, 41, 59); // Slate-800
   doc.text("RSM - Sistema de Ventas", pageWidth / 2, 20, { align: 'center' });
-  
+
   doc.setFontSize(14);
   doc.text(title, pageWidth / 2, 30, { align: 'center' });
-  
+
   doc.setFontSize(10);
   doc.setTextColor(100, 116, 139); // Slate-500
   doc.text(`Generado el: ${new Date().toLocaleString()}`, pageWidth / 2, 38, { align: 'center' });
 
-  // Preparar datos para la tabla
+  // Mostrar filtros aplicados
+  let filterText = [];
+  if (filters.periodo) {
+    const periodos = { dia: "Último día", semana: "Última semana", mes: "Último mes", año: "Último año" };
+    filterText.push(`Período: ${periodos[filters.periodo] || filters.periodo}`);
+  }
+  if (filters.producto) filterText.push(`Producto: ${filters.producto}`);
+  if (filters.cliente && filters.cliente.length > 0) filterText.push(`Cliente: ${filters.cliente.join(', ')}`);
+  if (filters.vendedor) filterText.push(`Vendedor: ${filters.vendedor}`);
+
+  if (filterText.length > 0) {
+    doc.setFontSize(8);
+    doc.setTextColor(148, 163, 184); // Slate-400
+    doc.text(`Filtros: ${filterText.join(' | ')}`, pageWidth / 2, 44, { align: 'center' });
+  }
+
+  // Preparar datos para la tabla con filtros
   const tableRows = [];
   let totalGeneral = 0;
 
   clients.forEach(client => {
+    // Filtrar por cliente (si está en el filtro)
+    if (filters.cliente && filters.cliente.length > 0 && !filters.cliente.includes(client.nombre)) {
+      return;
+    }
+
     (client.ventas || []).forEach(venta => {
       const monto = Number(venta.monto || 0);
+      const fechaVenta = new Date(venta.fecha);
+
+      // Aplicar filtros
+      if (filters.periodo) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        let startDate = new Date(today);
+
+        if (filters.periodo === "dia") {
+          // startDate is already today at 00:00:00
+        } else if (filters.periodo === "semana") {
+          startDate.setDate(startDate.getDate() - 7);
+        } else if (filters.periodo === "mes") {
+          startDate.setMonth(startDate.getMonth() - 1);
+        } else if (filters.periodo === "año") {
+          startDate.setFullYear(startDate.getFullYear() - 1);
+        }
+
+        if (fechaVenta < startDate) return;
+      }
+
+      if (filters.producto && venta.producto !== filters.producto) return;
+      if (filters.vendedor) {
+        const vendedorNombre = client.vendedor?.nombre || client.vendedor?.username || '';
+        if (vendedorNombre !== filters.vendedor) return;
+      }
+
       totalGeneral += monto;
       tableRows.push([
-        new Date(venta.fecha).toLocaleDateString(),
+        fechaVenta.toLocaleDateString(),
         client.nombre,
         venta.producto || 'Producto',
+        venta.cantidad || 1,
+        venta.unidad || 'unidad',
         `$${monto.toLocaleString()}`,
         client.vendedor?.nombre || client.vendedor?.username || 'N/A'
       ]);
@@ -43,13 +94,13 @@ export const generateSalesReport = (clients, title = "Reporte General de Ventas"
 
   // Generar tabla usando la función autoTable directamente
   autoTable(doc, {
-    startY: 45,
-    head: [['Fecha', 'Cliente', 'Producto/Servicio', 'Monto', 'Vendedor']],
+    startY: filterText.length > 0 ? 50 : 45,
+    head: [['Fecha', 'Cliente', 'Producto', 'Cant.', 'Unidad', 'Monto', 'Vendedor']],
     body: tableRows,
     theme: 'grid',
     headStyles: { fillColor: [79, 70, 229], textColor: 255 }, // Indigo-600
     alternateRowStyles: { fillColor: [248, 250, 252] }, // Slate-50
-    margin: { top: 45 },
+    margin: { top: filterText.length > 0 ? 50 : 45 },
     didDrawPage: (data) => {
       // Pie de página
       doc.setFontSize(8);

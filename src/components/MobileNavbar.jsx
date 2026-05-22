@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Home, Users, BarChart2, Settings, History, FileText, Bell, LogOut } from "lucide-react";
+import { Home, Users, BarChart2, Settings, History, FileText, Bell, LogOut, Package } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useNotifications } from "../context/NotificationsContext";
@@ -30,6 +30,10 @@ export default function MobileNavbar() {
 
         <Link to="/clients" className={`flex flex-col items-center ${isActive("/clients")} transition-colors`} title="Clientes">
           <Users size={20} />
+        </Link>
+
+        <Link to="/stock" className={`flex flex-col items-center ${isActive("/stock")} transition-colors`} title="Inventario">
+          <Package size={20} />
         </Link>
 
         <Link to="/analytics" className={`flex flex-col items-center ${isActive("/analytics")} transition-colors`} title="Análisis">

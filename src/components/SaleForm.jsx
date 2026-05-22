@@ -1,26 +1,88 @@
 // SaleForm.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
+import { useProducts } from "../context/ProductsContext";
 
 export default function SaleForm({ open, cliente, onClose, onSave }) {
+  const { getActiveProducts } = useProducts();
   const [form, setForm] = useState({
     producto: "",
+    cantidad: 1,
+    unidad: "unidad",
+    precioUnitario: "",
     monto: "",
     fecha: new Date().toISOString().split('T')[0]
   });
+  const activeProducts = getActiveProducts();
+
+  // Resetear formulario cuando se abre el modal
+  useEffect(() => {
+    if (open) {
+      setForm({
+        producto: "",
+        cantidad: 1,
+        unidad: "unidad",
+        precioUnitario: "",
+        monto: "",
+        fecha: new Date().toISOString().split('T')[0]
+      });
+    }
+  }, [open]);
 
   if (!open || !cliente) return null;
+
+  const handleProductChange = (e) => {
+    const selectedProductId = e.target.value;
+    const selectedProduct = activeProducts.find(p => p._id === selectedProductId);
+    
+    if (selectedProduct) {
+      setForm({
+        ...form,
+        producto: selectedProduct.nombre,
+        unidad: selectedProduct.unidad || 'unidad',
+        precioUnitario: selectedProduct.precio.toString()
+      });
+    } else {
+      setForm({
+        ...form,
+        producto: "",
+        unidad: "unidad",
+        precioUnitario: ""
+      });
+    }
+  };
+
+  const handleCantidadChange = (e) => {
+    setForm({
+      ...form,
+      cantidad: Number(e.target.value) || 1
+    });
+  };
+
+  const handleMontoChange = (e) => {
+    setForm({
+      ...form,
+      monto: e.target.value
+    });
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    if (!form.producto.trim() || !form.monto || Number(form.monto) <= 0) {
+    if (!form.producto.trim() || !form.cantidad || Number(form.cantidad) <= 0 || !form.monto || Number(form.monto) <= 0) {
       alert("Por favor completa todos los campos correctamente");
       return;
     }
 
     onSave(form);
-    setForm({ producto: "", monto: "", fecha: new Date().toISOString().split('T')[0] });
+    setForm({ 
+      producto: "", 
+      cantidad: 1, 
+      unidad: "unidad", 
+      precioUnitario: "", 
+      monto: "", 
+      fecha: new Date().toISOString().split('T')[0] 
+    });
   };
 
   return (
@@ -40,28 +102,74 @@ export default function SaleForm({ open, cliente, onClose, onSave }) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm text-slate-300 mb-1">Producto/Servicio</label>
-            <input
-              type="text"
-              value={form.producto}
-              onChange={(e) => setForm({ ...form, producto: e.target.value })}
-              placeholder="Ej: Laptop Dell XPS 15"
+            <label className="block text-sm text-slate-300 mb-1">Producto</label>
+            <select
+              value={activeProducts.find(p => p.nombre === form.producto)?._id || ""}
+              onChange={handleProductChange}
               className="w-full p-3 rounded bg-slate-800 border border-slate-700 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               autoFocus
-            />
+            >
+              <option value="">Seleccionar producto...</option>
+              {activeProducts.map((product) => (
+                <option key={product._id} value={product._id}>
+                  {product.nombre} - ${product.precio?.toLocaleString()}/{product.unidad || 'unidad'} (Stock: {product.stock})
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-slate-500 mt-1">Selecciona un producto para auto-rellenar los datos</p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm text-slate-300 mb-1">Cantidad</label>
+              <input
+                type="number"
+                value={form.cantidad}
+                onChange={handleCantidadChange}
+                placeholder="Ej: 1"
+                className="w-full p-3 rounded bg-slate-800 border border-slate-700 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                min="1"
+                step="0.01"
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-slate-300 mb-1">Unidad</label>
+              <select
+                value={form.unidad}
+                onChange={(e) => setForm({ ...form, unidad: e.target.value })}
+                className="w-full p-3 rounded bg-slate-800 border border-slate-700 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              >
+                <option value="unidad">Unidad</option>
+                <option value="kg">Kilogramo (kg)</option>
+                <option value="g">Gramo (g)</option>
+                <option value="lb">Libra (lb)</option>
+                <option value="caja">Caja</option>
+                <option value="tarima">Tarima</option>
+                <option value="paca">Paca</option>
+                <option value="bulto">Bulto</option>
+                <option value="litro">Litro</option>
+                <option value="ml">Mililitro (ml)</option>
+                <option value="metro">Metro (m)</option>
+                <option value="cm">Centímetro (cm)</option>
+              </select>
+            </div>
           </div>
 
           <div>
-            <label className="block text-sm text-slate-300 mb-1">Monto</label>
-            <input
-              type="number"
-              value={form.monto}
-              onChange={(e) => setForm({ ...form, monto: e.target.value })}
-              placeholder="Ej: 25000"
-              className="w-full p-3 rounded bg-slate-800 border border-slate-700 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              min="0"
-              step="0.01"
-            />
+            <label className="block text-sm text-slate-300 mb-1">Monto Total</label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400">$</span>
+              <input
+                type="number"
+                value={form.monto}
+                onChange={handleMontoChange}
+                placeholder="Ej: 15000"
+                className="w-full pl-8 pr-4 py-3 rounded bg-slate-800 border border-slate-700 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                min="0"
+                step="0.01"
+              />
+            </div>
+            <p className="text-xs text-slate-500 mt-1">Ingresa el monto total de la venta</p>
           </div>
 
           <div>

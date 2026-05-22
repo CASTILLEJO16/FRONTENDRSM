@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 // Context providers
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ClientsProvider } from "./context/ClientsContext";
+import { ProductsProvider } from "./context/ProductsContext";
 import { NotificationsProvider } from "./context/NotificationsContext";
 
 // Components
@@ -24,6 +25,7 @@ const Activity = lazy(() => import("./pages/Activity"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Historial = lazy(() => import("./pages/HistoryPage"));
 const UsersAdmin = lazy(() => import("./pages/UsersAdmin"));
+const Stock = lazy(() => import("./pages/Stock"));
 const Sidebar = lazy(() => import("./components/Sidebar"));
 const Topbar = lazy(() => import("./components/Topbar"));
 const MobileNavbar = lazy(() => import("./components/MobileNavbar"));
@@ -148,6 +150,15 @@ function ProtectedRoutes() {
               />
               
               <Route 
+                path="/stock" 
+                element={
+                  <PageWrapper>
+                    <Stock />
+                  </PageWrapper>
+                } 
+              />
+              
+              <Route 
                 path="*" 
                 element={<Navigate to="/dashboard" />} 
               />
@@ -170,9 +181,10 @@ export default function App() {
         <NotificationsProvider>
           <AuthProvider>
             <ClientsProvider>
-              <Toast />
-              <ConnectionStatus />
-              <InstallPWA />
+              <ProductsProvider>
+                <Toast />
+                <ConnectionStatus />
+                <InstallPWA />
               
               <Routes>
                 {/* RUTA PÚBLICA - No requiere login */}
@@ -201,6 +213,7 @@ export default function App() {
                   element={<ProtectedRoutes />}
                 />
               </Routes>
+              </ProductsProvider>
             </ClientsProvider>
           </AuthProvider>
         </NotificationsProvider>

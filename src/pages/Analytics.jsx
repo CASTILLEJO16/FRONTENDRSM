@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { useNotifications } from "../context/NotificationsContext";
 import BarSalesChart from "../components/BarSalesChart";
 import GoalsChart from "../components/GoalsChart";
+import { Search } from "lucide-react";
 
 export default function Analytics() {
   console.log('[Analytics] Componente renderizado, role:', useAuth().currentUser?.role);
@@ -14,6 +15,8 @@ export default function Analytics() {
   const role = currentUser?.role || "vendedor";
   const [salesUsers, setSalesUsers] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -39,16 +42,44 @@ export default function Analytics() {
   }, [role, showErrorAlert, listSalesUsers]);
 
   const viewClients = useMemo(() => {
-    if (!(role === "admin" || role === "gerente")) return clients;
-    if (!selectedUserId) return clients;
-    return (clients || []).filter((c) => String(c?.vendedor?.id || "") === String(selectedUserId));
-  }, [clients, role, selectedUserId]);
+    let filtered = clients;
+
+    // Filtrar por vendedor (admin/gerente)
+    if (role === "admin" || role === "gerente") {
+      if (selectedUserId) {
+        filtered = (filtered || []).filter((c) => String(c?.vendedor?.id || "") === String(selectedUserId));
+      }
+    }
+
+    // Filtrar por término de búsqueda
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(client =>
+        client.nombre?.toLowerCase().includes(term) ||
+        client.empresa?.toLowerCase().includes(term)
+      );
+    }
+
+    return filtered;
+  }, [clients, role, selectedUserId, searchTerm]);
 
   const selectedLabel = useMemo(() => {
     if (!selectedUserId) return "Todos";
     const u = (salesUsers || []).find((x) => String(x?._id) === String(selectedUserId));
     return u?.nombre || u?.username || "Vendedor";
   }, [salesUsers, selectedUserId]);
+
+  const handleSelectClient = (client) => {
+    setSearchTerm(client.nombre);
+    setShowSuggestions(false);
+  };
+
+  const suggestions = searchTerm.trim()
+    ? clients.filter(client =>
+        client.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        client.empresa?.toLowerCase().includes(searchTerm.toLowerCase())
+      ).slice(0, 5)
+    : [];
 
   return (
     <div className="animate-page-enter pb-20">
@@ -77,6 +108,44 @@ export default function Analytics() {
             </select>
           </div>
         )}
+
+        {/* Buscador de clientes */}
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-soft">
+          <div className="text-sm text-slate-400 mb-2">Buscar cliente</div>
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400" size={18} />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setShowSuggestions(true);
+              }}
+              onFocus={() => setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+              placeholder="Buscar por nombre o empresa..."
+              className="w-full pl-12 pr-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
+            />
+
+            {/* Dropdown de sugerencias */}
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800 border border-slate-700 rounded-xl shadow-soft-lg z-50 max-h-64 overflow-y-auto">
+                {suggestions.map((client) => (
+                  <button
+                    key={client._id}
+                    onClick={() => handleSelectClient(client)}
+                    className="w-full px-4 py-3 text-left hover:bg-slate-700 transition-colors border-b border-slate-700 last:border-b-0"
+                  >
+                    <div className="font-medium text-slate-100">{client.nombre}</div>
+                    {client.empresa && (
+                      <div className="text-sm text-slate-400">{client.empresa}</div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-soft">

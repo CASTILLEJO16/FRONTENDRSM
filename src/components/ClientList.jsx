@@ -4,23 +4,20 @@ import { useClients } from "../context/ClientsContext";
 import { useErrorHandler } from "../hooks/useErrorHandler";
 import { useNotifications } from "../context/NotificationsContext";
 import { SkeletonCard } from "./ui/Skeleton";
-import ConfirmDialog from "./ConfirmDialog";
 import SaleForm from "./SaleForm";
 import ObservationModal from "./ObservationModal";
 import QRModal from "./QRModal";
 
-export default function ClientList({ onEdit, onDelete, onAddSale }) {
-  const { clients, isLoading, enviarMensaje } = useClients();
+export default function ClientList({ clients = [], onEdit, onDelete, onAddSale }) {
+  const { isLoading, enviarMensaje } = useClients();
   const { handleError } = useErrorHandler();
   const { showSuccess, showError } = useNotifications();
-  
-  const [confirmDelete, setConfirmDelete] = useState({ open: false, client: null });
+
   const [saleForm, setSaleForm] = useState({ open: false, client: null });
   const [showObservationModal, setShowObservationModal] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
   const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
 
-  // Handlers optimizados con useCallback
   const handleQRClick = useCallback((client) => {
     setClienteSeleccionado(client);
     setShowQRModal(true);
@@ -35,8 +32,8 @@ export default function ClientList({ onEdit, onDelete, onAddSale }) {
   }, [onEdit]);
 
   const handleDeleteClick = useCallback((client) => {
-    setConfirmDelete({ open: true, client });
-  }, []);
+    onDelete(client);
+  }, [onDelete]);
 
   const handleObservationClick = useCallback((client) => {
     setClienteSeleccionado(client);
@@ -46,15 +43,6 @@ export default function ClientList({ onEdit, onDelete, onAddSale }) {
   const handleQRClose = useCallback(() => {
     setShowQRModal(false);
     setClienteSeleccionado(null);
-  }, []);
-
-  const handleDeleteConfirm = useCallback(() => {
-    onDelete(confirmDelete.client._id);
-    setConfirmDelete({ open: false, client: null });
-  }, [onDelete, confirmDelete.client]);
-
-  const handleDeleteCancel = useCallback(() => {
-    setConfirmDelete({ open: false, client: null });
   }, []);
 
   const handleSaleClose = useCallback(() => {
@@ -69,9 +57,9 @@ export default function ClientList({ onEdit, onDelete, onAddSale }) {
       setSaleForm({ open: false, client: null });
     } catch (error) {
       handleError(error, {
-        context: 'handleSaleSave',
-        userMessage: 'Error al registrar la venta',
-        showToast: true
+        context: "handleSaleSave",
+        userMessage: "Error al registrar la venta",
+        showToast: true,
       });
     }
   }, [saleForm.client, handleError, onAddSale]);
@@ -90,25 +78,22 @@ export default function ClientList({ onEdit, onDelete, onAddSale }) {
     } catch (error) {
       showError("Error al enviar el mensaje");
       handleError(error, {
-        context: 'handleObservationSave',
-        userMessage: 'Error al enviar el mensaje',
-        showToast: true
+        context: "handleObservationSave",
+        userMessage: "Error al enviar el mensaje",
+        showToast: true,
       });
     }
   }, [clienteSeleccionado, handleError, enviarMensaje, showSuccess, showError]);
 
-  // Mostrar skeletons durante carga
   if (isLoading) {
     return (
       <>
-        {/* 📱 VISTA MÓVIL - Skeleton Cards */}
         <div className="block lg:hidden space-y-4">
           {Array.from({ length: 5 }).map((_, i) => (
             <SkeletonCard key={i} />
           ))}
         </div>
 
-        {/* 🖥️ VISTA DESKTOP - Skeleton Table */}
         <div className="hidden lg:block bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -169,32 +154,36 @@ export default function ClientList({ onEdit, onDelete, onAddSale }) {
     );
   }
 
-  if (!clients || clients.length === 0)
+  if (!clients || clients.length === 0) {
     return <div className="bg-slate-800 p-6 rounded">No hay clientes registrados</div>;
+  }
 
   return (
     <>
-      {/* 📱 VISTA MÓVIL - Cards */}
       <div className="block lg:hidden space-y-4">
         {clients.map((c) => (
           <div key={c._id} className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-            {/* Header */}
             <div className="flex justify-between items-start mb-3">
               <div className="flex-1">
                 <h3 className="font-semibold text-slate-100 text-lg">{c.nombre}</h3>
                 {c.empresa && <p className="text-sm text-slate-400">{c.empresa}</p>}
+                {c.activo === false && (
+                  <span className="inline-block mt-2 px-2 py-1 rounded-full text-xs bg-amber-900 text-amber-200">
+                    Inactivo
+                  </span>
+                )}
               </div>
               <div className="flex gap-2">
-                <button 
+                <button
                   onClick={() => handleQRClick(c)}
-                  className="text-blue-400 hover:text-blue-200 p-2 transition-colors" 
+                  className="text-blue-400 hover:text-blue-200 p-2 transition-colors"
                   title="QR"
                 >
                   <QrCode size={20} />
                 </button>
-                <button 
+                <button
                   onClick={() => handleSaleClick(c)}
-                  className="text-emerald-400 hover:text-emerald-200 p-2 transition-colors" 
+                  className="text-emerald-400 hover:text-emerald-200 p-2 transition-colors"
                   title="Venta"
                 >
                   <Plus size={20} />
@@ -202,7 +191,6 @@ export default function ClientList({ onEdit, onDelete, onAddSale }) {
               </div>
             </div>
 
-            {/* Info Grid */}
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div>
                 <p className="text-xs text-slate-500 mb-1">Contacto</p>
@@ -212,12 +200,11 @@ export default function ClientList({ onEdit, onDelete, onAddSale }) {
               <div>
                 <p className="text-xs text-slate-500 mb-1">Vendedor</p>
                 <span className="inline-block px-2 py-1 rounded-full text-xs bg-indigo-900 text-indigo-300">
-                  {c.vendedor?.nombre || c.vendedor?.username || c.vendedor || 'Sin asignar'}
+                  {c.vendedor?.nombre || c.vendedor?.username || c.vendedor || "Sin asignar"}
                 </span>
               </div>
             </div>
 
-            {/* Total y Estado */}
             <div className="flex justify-between items-center mb-3 pb-3 border-b border-slate-800">
               <div>
                 <p className="text-xs text-slate-500 mb-1">Total Ventas</p>
@@ -249,35 +236,33 @@ export default function ClientList({ onEdit, onDelete, onAddSale }) {
               </div>
             </div>
 
-            {/* Fecha */}
             <div className="mb-3">
               <p className="text-xs text-slate-500">Fecha de registro</p>
               <p className="text-sm text-slate-300">
-                {new Date(c.fecha).toLocaleDateString('es-MX', { 
-                  timeZone: 'America/Mexico_City',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
+                {new Date(c.fecha).toLocaleDateString("es-MX", {
+                  timeZone: "America/Mexico_City",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
                 })}
               </p>
             </div>
 
-            {/* Acciones */}
             <div className="flex gap-2">
-              <button 
+              <button
                 onClick={() => handleEditClick(c)}
                 className="flex-1 flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 py-2 rounded text-white text-sm transition-colors"
               >
                 <Edit2 size={16} />
                 Editar
               </button>
-              <button 
+              <button
                 onClick={() => handleObservationClick(c)}
                 className="flex-1 flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 py-2 rounded text-white text-sm transition-colors"
               >
                 💬 Mensaje
               </button>
-              <button 
+              <button
                 onClick={() => handleDeleteClick(c)}
                 className="px-4 bg-rose-600 hover:bg-rose-700 py-2 rounded text-white text-sm transition-colors"
                 title="Eliminar"
@@ -289,7 +274,6 @@ export default function ClientList({ onEdit, onDelete, onAddSale }) {
         ))}
       </div>
 
-      {/* 🖥️ VISTA DESKTOP - Tabla */}
       <div className="hidden lg:block bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -310,6 +294,11 @@ export default function ClientList({ onEdit, onDelete, onAddSale }) {
                   <td className="px-6 py-4">
                     <p className="font-medium">{c.nombre}</p>
                     {c.empresa && <p className="text-sm text-slate-400">{c.empresa}</p>}
+                    {c.activo === false && (
+                      <span className="inline-block mt-2 px-2 py-1 rounded-full text-xs bg-amber-900 text-amber-200">
+                        Inactivo
+                      </span>
+                    )}
                   </td>
                   <td className="px-6 py-4">
                     <p className="text-sm">{c.telefono}</p>
@@ -317,7 +306,7 @@ export default function ClientList({ onEdit, onDelete, onAddSale }) {
                   </td>
                   <td className="px-6 py-4">
                     <span className="px-2 py-1 rounded-full text-xs bg-indigo-900 text-indigo-300">
-                      {c.vendedor?.nombre || c.vendedor?.username || c.vendedor || 'Sin asignar'}
+                      {c.vendedor?.nombre || c.vendedor?.username || c.vendedor || "Sin asignar"}
                     </span>
                   </td>
                   <td className="px-6 py-4">
@@ -326,59 +315,65 @@ export default function ClientList({ onEdit, onDelete, onAddSale }) {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm">
-                    {new Date(c.fecha).toLocaleDateString('es-MX', { 
-                      timeZone: 'America/Mexico_City',
-                      year: 'numeric',
-                      month: '2-digit',
-                      day: '2-digit'
+                    {new Date(c.fecha).toLocaleDateString("es-MX", {
+                      timeZone: "America/Mexico_City",
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
                     })}
                   </td>
                   <td className="px-6 py-4">
-                    {c.compro === true && (
-                      <span className="px-2 py-1 text-xs bg-emerald-900 text-emerald-200 rounded-full">
-                        Compró
+                    <div className="flex flex-col gap-2">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        c.activo !== false ? "bg-green-900/50 text-green-300" : "bg-red-900/50 text-red-300"
+                      }`}>
+                        {c.activo !== false ? "Activo" : "Inactivo"}
                       </span>
-                    )}
-                    {c.compro === false && (
-                      <div>
-                        <span className="px-2 py-1 text-xs bg-rose-900 text-rose-200 rounded-full">
-                          No compró
+                      {c.compro === true && (
+                        <span className="px-2 py-1 text-xs bg-emerald-900 text-emerald-200 rounded-full">
+                          Compró
                         </span>
-                        {c.razonNoCompra && <p className="text-xs mt-1 text-slate-400">{c.razonNoCompra}</p>}
-                      </div>
-                    )}
-                    {c.compro === null && (
-                      <span className="px-2 py-1 text-xs bg-yellow-900 text-yellow-200 rounded-full">
-                        Pendiente
-                      </span>
-                    )}
+                      )}
+                      {c.compro === false && (
+                        <div>
+                          <span className="px-2 py-1 text-xs bg-rose-900 text-rose-200 rounded-full">
+                            No compró
+                          </span>
+                          {c.razonNoCompra && <p className="text-xs mt-1 text-slate-400">{c.razonNoCompra}</p>}
+                        </div>
+                      )}
+                      {c.compro === null && (
+                        <span className="px-2 py-1 text-xs bg-yellow-900 text-yellow-200 rounded-full">
+                          Pendiente
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex gap-2">
-                      <button 
+                      <button
                         onClick={() => handleQRClick(c)}
                         className="text-blue-400 hover:text-blue-200 transition-colors"
                         title="Ver código QR"
                       >
                         <QrCode size={18} />
                       </button>
-                      
-                      <button 
-                        onClick={() => handleSaleClick(c)} 
+                      <button
+                        onClick={() => handleSaleClick(c)}
                         className="text-emerald-400 hover:text-emerald-200 transition-colors"
                         title="Registrar venta"
                       >
                         <Plus size={18} />
                       </button>
-                      <button 
-                        onClick={() => handleEditClick(c)} 
+                      <button
+                        onClick={() => handleEditClick(c)}
                         className="text-indigo-400 hover:text-indigo-200 transition-colors"
                         title="Editar cliente"
                       >
                         <Edit2 size={18} />
                       </button>
-                      <button 
-                        onClick={() => handleDeleteClick(c)} 
+                      <button
+                        onClick={() => handleDeleteClick(c)}
                         className="text-rose-400 hover:text-rose-200 transition-colors"
                         title="Eliminar cliente"
                       >
@@ -400,7 +395,6 @@ export default function ClientList({ onEdit, onDelete, onAddSale }) {
         </div>
       </div>
 
-      {/* Modal QR */}
       {showQRModal && (
         <QRModal
           cliente={clienteSeleccionado}
@@ -408,16 +402,6 @@ export default function ClientList({ onEdit, onDelete, onAddSale }) {
         />
       )}
 
-      {/* Modal de confirmación */}
-      <ConfirmDialog
-        open={confirmDelete.open}
-        title="Eliminar Cliente"
-        message={`¿Estás seguro de eliminar a ${confirmDelete.client?.nombre}? Esta acción no se puede deshacer.`}
-        onConfirm={handleDeleteConfirm}
-        onCancel={handleDeleteCancel}
-      />
-
-      {/* Modal de nueva venta */}
       <SaleForm
         open={saleForm.open}
         cliente={saleForm.client}
@@ -425,7 +409,6 @@ export default function ClientList({ onEdit, onDelete, onAddSale }) {
         onSave={handleSaleSave}
       />
 
-      {/* Modal de observaciones */}
       {showObservationModal && (
         <ObservationModal
           cliente={clienteSeleccionado}

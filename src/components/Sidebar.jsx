@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Menu, X, Home, Users, BarChart2, Settings, LogOut, History, FileText, Bell } from "lucide-react";
+import { Menu, X, Home, Users, BarChart2, Settings, LogOut, History, FileText, Bell, Package } from "lucide-react";
 
 export default function Sidebar() {
   const [open, setOpen] = useState(false);
@@ -11,6 +11,7 @@ export default function Sidebar() {
   const links = [
     { to: "/dashboard", label: "Dashboard", icon: <Home size={20} /> },
     { to: "/clients", label: "Clientes", icon: <Users size={20} /> },
+    { to: "/stock", label: "Inventario", icon: <Package size={20} /> },
     ...(role === "admin" || role === "gerente" || role === "vendedor"
       ? [
           { to: "/analytics", label: "Análisis", icon: <BarChart2 size={20} /> },

@@ -5,6 +5,7 @@ export default function ClientForm({
   open,
   onClose,
   onSave,
+  onSaveAndNewSale,
   editing = null,
 }) {
 
@@ -20,12 +21,11 @@ export default function ClientForm({
     telefono: "",
     email: "",
     empresa: "",
+    activo: true,
     compro: null,
     razonNoCompra: "",
     observaciones: "",
     fecha: getLocalDate(),
-    producto: "",
-    monto: "",
     contactosAdicionales: [],
   });
 
@@ -38,8 +38,7 @@ export default function ClientForm({
     if (editing) {
       setForm({
         ...editing,
-        monto: "",
-        producto: "",
+        activo: editing.activo !== false,
         contactosAdicionales: editing.contactosAdicionales || [],
         fecha: editing.fecha ? editing.fecha : getLocalDate()
       });
@@ -49,12 +48,11 @@ export default function ClientForm({
         telefono: "",
         email: "",
         empresa: "",
+        activo: true,
         compro: null,
         razonNoCompra: "",
         observaciones: "",
         fecha: getLocalDate(),
-        producto: "",
-        monto: "",
         contactosAdicionales: [],
       });
     }
@@ -171,24 +169,7 @@ export default function ClientForm({
             </div>
           </div>
 
-          {/* Venta inicial solo si NO estamos editando */}
-          {!editing && (
-            <>
-              <input 
-                className="w-full p-2 rounded bg-slate-800 border border-slate-700 text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" 
-                placeholder="Producto vendido" 
-                value={form.producto} 
-                onChange={(e) => setForm({ ...form, producto: e.target.value })} 
-              />
-              <input 
-                type="number" 
-                className="w-full p-2 rounded bg-slate-800 border border-slate-700 text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" 
-                placeholder="Monto de la venta inicial" 
-                value={form.monto} 
-                onChange={(e) => setForm({ ...form, monto: e.target.value })} 
-              />
-            </>
-          )}
+
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <input 
@@ -205,8 +186,21 @@ export default function ClientForm({
             />
           </div>
 
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              id="cliente-activo"
+              checked={form.activo !== false}
+              onChange={(e) => setForm({ ...form, activo: e.target.checked })}
+              className="w-5 h-5 rounded border-slate-700 bg-slate-900 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-slate-800"
+            />
+            <label htmlFor="cliente-activo" className="text-sm text-slate-300">
+              Cliente activo
+            </label>
+          </div>
+
           <div>
-            <p className="text-sm text-slate-300 mb-1">¿Realizó la compra?</p>
+            <p className="text-sm text-slate-300 mb-1">¿Se realizó una venta?</p>
             <div className="flex gap-4">
               <label className="flex items-center gap-2 text-slate-200">
                 <input 
@@ -256,13 +250,21 @@ export default function ClientForm({
             rows="3"
           />
 
-          <div className="flex gap-3 pt-3">
+          <div className="flex gap-3 pt-3 flex-wrap">
             <button 
               onClick={() => onSave(form)} 
-              className="flex-1 bg-indigo-600 hover:bg-indigo-700 py-2 rounded transition-colors text-white font-medium"
+              className="flex-1 min-w-[140px] bg-indigo-600 hover:bg-indigo-700 py-2 rounded transition-colors text-white font-medium"
             >
               {editing ? "Guardar Cambios" : "Crear Cliente"}
             </button>
+            {!editing && onSaveAndNewSale && (
+              <button 
+                onClick={() => onSaveAndNewSale(form)} 
+                className="flex-1 min-w-[140px] bg-emerald-600 hover:bg-emerald-700 py-2 rounded transition-colors text-white font-medium"
+              >
+                Crear y Nueva Venta
+              </button>
+            )}
             <button 
               onClick={onClose} 
               className="px-6 py-2 border border-slate-700 rounded hover:bg-slate-800 transition-colors text-slate-300"

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Calendar, Bell, Clock, CheckCircle, CalendarDays } from "lucide-react";
+import { Plus, Calendar, Bell, Clock, CheckCircle, CalendarDays, Search } from "lucide-react";
 import { useClients } from "../context/ClientsContext";
 import { useAuth } from "../context/AuthContext";
 import { useNotifications } from "../context/NotificationsContext";
@@ -16,6 +16,9 @@ export default function Activity() {
   const [showForm, setShowForm] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [editingReminder, setEditingReminder] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [filteredReminders, setFilteredReminders] = useState(reminders);
 
   // Generar clave única para el usuario
   const getUserKey = () => {
@@ -27,17 +30,34 @@ export default function Activity() {
     const userKey = getUserKey();
     const storedReminders = notificationService.getStoredReminders(userKey);
     setReminders(storedReminders);
-    
+    setFilteredReminders(storedReminders);
+
     // Solicitar permiso de notificación
     notificationService.requestPermission();
-    
+
     // Iniciar verificación de recordatorios
     notificationService.startChecking(storedReminders);
-    
+
     return () => {
       notificationService.stopChecking();
     };
   }, [currentUser]);
+
+  // Filtrar recordatorios por término de búsqueda
+  useEffect(() => {
+    if (!searchTerm.trim()) {
+      setFilteredReminders(reminders);
+      return;
+    }
+
+    const term = searchTerm.toLowerCase();
+    const filtered = reminders.filter(reminder =>
+      reminder.titulo?.toLowerCase().includes(term) ||
+      reminder.descripcion?.toLowerCase().includes(term) ||
+      reminder.cliente?.toLowerCase().includes(term)
+    );
+    setFilteredReminders(filtered);
+  }, [searchTerm, reminders]);
 
   // Crear nuevo recordatorio
   const handleReminderCreated = (reminder) => {
@@ -45,6 +65,12 @@ export default function Activity() {
     const newReminder = notificationService.addReminder(reminder, userKey);
     setReminders(prev => [...prev, newReminder]);
     setShowForm(false);
+  };
+
+  const handleSelectReminder = (reminder) => {
+    setSearchTerm(reminder.titulo);
+    setShowSuggestions(false);
+    setFilteredReminders([reminder]);
   };
 
   // Editar recordatorio
@@ -82,15 +108,22 @@ export default function Activity() {
 
   // Estadísticas
   const stats = {
-    total: reminders.length,
-    pendientes: reminders.filter(r => r.estado === 'pendiente').length,
-    completados: reminders.filter(r => r.estado === 'completado').length,
-    hoy: reminders.filter(r => {
+    total: filteredReminders.length,
+    pendientes: filteredReminders.filter(r => r.estado === 'pendiente').length,
+    completados: filteredReminders.filter(r => r.estado === 'completado').length,
+    hoy: filteredReminders.filter(r => {
       const reminderDate = new Date(r.fecha + 'T' + r.hora);
       const today = new Date();
       return reminderDate.toDateString() === today.toDateString() && r.estado === 'pendiente';
     }).length
   };
+
+  const suggestions = searchTerm.trim()
+    ? reminders.filter(reminder =>
+        reminder.titulo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        reminder.cliente?.toLowerCase().includes(searchTerm.toLowerCase())
+      ).slice(0, 5)
+    : [];
 
   return (
     <div className="animate-page-enter pb-20">
@@ -104,14 +137,53 @@ export default function Activity() {
             </h1>
             <p className="text-white/80 mt-2">Gestiona tus recordatorios y citas programadas</p>
           </div>
-          
-          <button
-            onClick={() => setShowForm(true)}
-            className="btn bg-white text-indigo-600 hover:bg-slate-100 flex items-center gap-2"
-          >
-            <Plus size={20} />
-            Nuevo Recordatorio
-          </button>
+
+          <div className="flex items-center gap-3">
+            {/* Buscador con autocompletado */}
+            <div className="relative w-full md:w-64">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60" size={16} />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setShowSuggestions(true);
+                  }}
+                  onFocus={() => setShowSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                  placeholder="Buscar recordatorio..."
+                  className="w-full pl-10 pr-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-transparent transition-all duration-200"
+                />
+              </div>
+
+              {/* Dropdown de sugerencias */}
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800 border border-slate-700 rounded-lg shadow-soft-lg z-50 max-h-48 overflow-y-auto">
+                  {suggestions.map((reminder) => (
+                    <button
+                      key={reminder.id}
+                      onClick={() => handleSelectReminder(reminder)}
+                      className="w-full px-3 py-2 text-left hover:bg-slate-700 transition-colors border-b border-slate-700 last:border-b-0"
+                    >
+                      <div className="font-medium text-slate-100 text-sm">{reminder.titulo}</div>
+                      {reminder.cliente && (
+                        <div className="text-xs text-slate-400">{reminder.cliente}</div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={() => setShowForm(true)}
+              className="btn bg-white text-indigo-600 hover:bg-slate-100 flex items-center gap-2"
+            >
+              <Plus size={20} />
+              Nuevo Recordatorio
+            </button>
+          </div>
         </div>
       </div>
 
@@ -155,15 +227,15 @@ export default function Activity() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Calendario */}
           <ReminderCalendar
-            reminders={reminders}
+            reminders={filteredReminders}
             selectedDate={selectedDate}
             onDateSelect={setSelectedDate}
             onReminderClick={(reminder) => handleReminderEdit(reminder)}
           />
-          
+
           {/* Lista de recordatorios */}
           <ReminderList
-            reminders={reminders}
+            reminders={filteredReminders}
             onReminderEdit={handleReminderEdit}
             onReminderDelete={handleReminderDelete}
             onReminderComplete={handleReminderComplete}

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useClients } from '../context/ClientsContext';
-import { X, FileText } from 'lucide-react';
+import { X, FileText, Search } from 'lucide-react';
 import { generateSaleReceipt } from '../utils/reportGenerator';
 
 // Modal para ver imagen en tamaño completo
@@ -208,13 +208,33 @@ function Historial({ clients }) {
 // Componente Principal - HistoryPage
 export default function HistoryPage() {
   const { clients, fetchClients } = useClients();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   React.useEffect(() => {
     fetchClients();
   }, [fetchClients]);
 
-  const handleRecargar = () => {
-    fetchClients();
+  const filteredClients = useMemo(() => {
+    if (!searchTerm.trim()) return clients || [];
+
+    const term = searchTerm.toLowerCase();
+    return (clients || []).filter((client) =>
+      client.nombre?.toLowerCase().includes(term)
+    );
+  }, [clients, searchTerm]);
+
+  const suggestions = useMemo(() => {
+    if (!searchTerm.trim()) return [];
+
+    return (clients || [])
+      .filter((client) => client.nombre?.toLowerCase().includes(searchTerm.toLowerCase()))
+      .slice(0, 6);
+  }, [clients, searchTerm]);
+
+  const handleSelectClient = (client) => {
+    setSearchTerm(client.nombre || '');
+    setShowSuggestions(false);
   };
 
   if (!clients) {
@@ -240,14 +260,48 @@ export default function HistoryPage() {
               Historial de Actividad
             </h1>
             <p className="text-slate-400">
-              {clients.length} cliente{clients.length !== 1 ? 's' : ''} registrado{clients.length !== 1 ? 's' : ''}
+              {filteredClients.length} cliente{filteredClients.length !== 1 ? 's' : ''} mostrado{filteredClients.length !== 1 ? 's' : ''}
             </p>
+          </div>
+
+          <div className="relative w-full sm:w-96">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setShowSuggestions(true);
+              }}
+              onFocus={() => setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+              placeholder="Buscar cliente por nombre..."
+              className="w-full pl-12 pr-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
+            />
+
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800 border border-slate-700 rounded-xl shadow-soft-lg z-50 max-h-64 overflow-y-auto">
+                {suggestions.map((client) => (
+                  <button
+                    key={client._id}
+                    type="button"
+                    onClick={() => handleSelectClient(client)}
+                    className="w-full px-4 py-3 text-left hover:bg-slate-700 transition-colors border-b border-slate-700 last:border-b-0"
+                  >
+                    <div className="font-medium text-slate-100">{client.nombre}</div>
+                    {client.empresa && (
+                      <div className="text-sm text-slate-400">{client.empresa}</div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* Contenido */}
-      <Historial clients={clients} />
+      <Historial clients={filteredClients} />
     </div>
   );
 }

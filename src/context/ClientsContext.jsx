@@ -22,7 +22,7 @@ export function ClientsProvider({ children }) {
   const [retryCount, setRetryCount] = useState(0);
 
   // Función para obtener todos los clientes
-  const fetchClients = useCallback(async () => {
+  const fetchClients = useCallback(async (activo) => {
     if (!isAuthenticated) return;
     
     setIsLoading(true);
@@ -33,7 +33,8 @@ export function ClientsProvider({ children }) {
     console.log('[ClientsContext] Token disponible:', !!token);
     
     try {
-      const res = await authAPI.get('/clients');
+      const query = (activo === true || activo === false) ? `?activo=${activo}` : '';
+      const res = await authAPI.get(`/clients${query}`);
       console.log('[ClientsContext] Clientes cargados:', res.data.length);
       setClients(res.data);
       setRetryCount(0);
@@ -127,14 +128,41 @@ export function ClientsProvider({ children }) {
     setError(null);
     
     try {
-      await authAPI.delete(`/clients/${id}`);
-      
-      setClients(prev => prev.filter(client => client._id !== id));
-      return { success: true };
+      const res = await authAPI.delete(`/clients/${id}`);
+      const updatedClient = res.data;
+
+      setClients(prev => prev.map(client =>
+        client._id === id ? updatedClient : client
+      ));
+      return { success: true, client: updatedClient };
     } catch (error) {
       const handledError = handleError(error, {
-        userMessage: error?.response?.data?.msg || 'Error al eliminar cliente',
+        userMessage: error?.response?.data?.msg || 'Error al inactivar cliente',
         context: 'clients.deleteClient'
+      });
+      setError(handledError);
+      return { success: false, error: handledError };
+    } finally {
+      setIsLoading(false);
+    }
+  }, [authAPI, handleError]);
+
+  const toggleClientStatus = useCallback(async (id, activo) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const res = await authAPI.patch(`/clients/${id}/status`, { activo });
+      const updatedClient = res.data;
+
+      setClients(prev => prev.map(client =>
+        client._id === id ? updatedClient : client
+      ));
+      return { success: true, client: updatedClient };
+    } catch (error) {
+      const handledError = handleError(error, {
+        userMessage: error?.response?.data?.msg || 'Error al actualizar estado del cliente',
+        context: 'clients.toggleClientStatus'
       });
       setError(handledError);
       return { success: false, error: handledError };
@@ -317,6 +345,7 @@ export function ClientsProvider({ children }) {
     createClient,
     updateClient,
     deleteClient,
+    toggleClientStatus,
     getClientById,
     
     // Utilidades
