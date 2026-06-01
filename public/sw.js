@@ -7,8 +7,8 @@ const urlsToCache = [
 // Recursos opcionales - se intentan cachear pero no bloquean la instalación
 const optionalUrls = [
   '/manifest.json',
-  '/icon-192x192.png',
-  '/icon-512x512.png',
+  '/android-chrome-192x192.png',
+  '/android-chrome-512x512.png',
   '/favicon.ico'
 ];
 
