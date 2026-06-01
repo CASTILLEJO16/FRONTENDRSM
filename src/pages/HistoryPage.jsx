@@ -212,7 +212,7 @@ export default function HistoryPage() {
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   React.useEffect(() => {
-    fetchClients();
+    fetchClients(undefined, true);
   }, [fetchClients]);
 
   const filteredClients = useMemo(() => {

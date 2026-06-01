@@ -20,11 +20,13 @@ export function ClientsProvider({ children }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
+  const fetchRequestRef = React.useRef(0);
 
   // Función para obtener todos los clientes
-  const fetchClients = useCallback(async (activo) => {
+  const fetchClients = useCallback(async (activo, includeImages = false) => {
     if (!isAuthenticated) return;
     
+    const requestId = ++fetchRequestRef.current;
     setIsLoading(true);
     setError(null);
     
@@ -33,9 +35,23 @@ export function ClientsProvider({ children }) {
     console.log('[ClientsContext] Token disponible:', !!token);
     
     try {
-      const query = (activo === true || activo === false) ? `?activo=${activo}` : '';
+      const params = new URLSearchParams();
+      if (activo === true || activo === false) {
+        params.set('activo', String(activo));
+      }
+      if (includeImages) {
+        params.set('includeImages', 'true');
+      }
+      const query = params.toString() ? `?${params.toString()}` : '';
       const res = await authAPI.get(`/clients${query}`);
       console.log('[ClientsContext] Clientes cargados:', res.data.length);
+
+      // Solo aplicar la respuesta más reciente para evitar sobrescribir
+      // una carga con imágenes por otra sin imágenes.
+      if (requestId !== fetchRequestRef.current) {
+        return { success: true, clients: res.data };
+      }
+
       setClients(res.data);
       setRetryCount(0);
       return { success: true, clients: res.data };
@@ -54,7 +70,9 @@ export function ClientsProvider({ children }) {
       
       return { success: false, error: handledError };
     } finally {
-      setIsLoading(false);
+      if (requestId === fetchRequestRef.current) {
+        setIsLoading(false);
+      }
     }
   }, [authAPI, isAuthenticated, handleError, token]);
 

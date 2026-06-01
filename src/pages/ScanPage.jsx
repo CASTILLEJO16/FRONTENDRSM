@@ -59,7 +59,7 @@ export default function ScanPage() {
       }
       
       setShowModal(false);
-      showAlert("success", "✅ Mensaje enviado correctamente");
+      showSuccessAlert("Mensaje enviado correctamente");
       
       // Si está logueado, volver a clientes, si no, solo cerrar
       if (token) {
@@ -67,7 +67,7 @@ export default function ScanPage() {
       }
     } catch (error) {
       console.error("Error al enviar mensaje:", error);
-      showAlert("error", "❌ Error al enviar el mensaje");
+      showErrorAlert("Error al enviar el mensaje");
     }
   };
 
